@@ -135,6 +135,52 @@
     .glow-coral {
       box-shadow: 0 0 20px -3px rgba(244, 63, 94, 0.35);
     }
+
+    /* Heroic Celebration Animations */
+    @keyframes heroPopIn {
+      0% { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+      50% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      75% { transform: scale(0.96) rotate(-1deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes heroRaysRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes heroPulseRings {
+      0% { transform: scale(0.8); opacity: 0.9; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .hero-animate-pop {
+      animation: heroPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .hero-rays {
+      animation: heroRaysRotate 12s linear infinite;
+    }
+    .hero-ring {
+      animation: heroPulseRings 1.8s ease-out infinite;
+    }
+
+    /* Loser / Defeat Animations */
+    @keyframes loserWobble {
+      0% { transform: translateY(-30px) scale(0.8); opacity: 0; }
+      20% { transform: translateY(0) scale(1.04); opacity: 1; }
+      40% { transform: rotate(-8deg); }
+      60% { transform: rotate(8deg); }
+      80% { transform: rotate(-4deg); }
+      100% { transform: rotate(0deg) scale(1); opacity: 1; }
+    }
+    @keyframes loserRain {
+      0% { transform: translateY(-20px); opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(120px); opacity: 0; }
+    }
+    .loser-animate-wobble {
+      animation: loserWobble 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+    }
+    .loser-tears {
+      animation: loserRain 1.4s ease-in infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-full font-sans antialiased transition-colors duration-200">
@@ -172,6 +218,17 @@
     <main class="flex-1 px-4 pt-3 content-container">
       <!-- TAB 1: TRACK (HOME) -->
       <section id="view-track" class="space-y-4">
+        <!-- Personalized Greeting Banner -->
+        <div id="user-greeting-banner" class="hidden flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm">👋</span>
+            <span id="user-greeting-text" class="font-bold text-slate-800 dark:text-slate-200">Hello Alan!</span>
+          </div>
+          <button type="button" onclick="app.openUserNameModal(true)" class="text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:underline">
+            Edit
+          </button>
+        </div>
+
         <!-- Daily Logging Card: Pending vs Completed -->
         <div id="today-action-card" class="rounded-2xl p-4 transition-all duration-300">
           <!-- Populated by JS -->
@@ -394,6 +451,62 @@
               <button id="unit-btn-tsp" class="px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400">tsp</button>
             </div>
           </div>
+
+          <!-- User Name Setting -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-900 dark:text-white">Your Name</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400" id="settings-name-preview">Used for habit updates</p>
+              </div>
+            </div>
+            <button id="btn-edit-user-name" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors">
+              Edit
+            </button>
+          </div>
+
+          <!-- Sound Effects Setting -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-900 dark:text-white">Audio & Fanfares</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Heroic brass on 0g clean, sad trombone on treats</p>
+              </div>
+            </div>
+            <button id="btn-toggle-sound" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-brand-500" role="switch" aria-checked="true">
+              <span id="sound-toggle-thumb" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+            </button>
+          </div>
+
+          <!-- Savage Roast Mode (Abuse & Insults on Sugar Log) -->
+          <div class="p-3 rounded-xl border border-amber-300/80 dark:border-amber-800/80 bg-amber-50/60 dark:bg-amber-950/20 space-y-2 pt-3 border-t">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <i data-lucide="flame" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <p class="text-xs font-bold text-amber-900 dark:text-amber-200">Savage Roast Mode 🌶️</p>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-bold uppercase">Optional</span>
+                  </div>
+                  <p class="text-[11px] text-amber-700/90 dark:text-amber-300/80">Hilarious tough-love roasts & savage names whenever you log sugar</p>
+                </div>
+              </div>
+              <button id="btn-toggle-roast-mode" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300 dark:bg-slate-700" role="switch" aria-checked="false">
+                <span id="roast-toggle-thumb" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+              </button>
+            </div>
+            <p class="text-[10px] text-amber-800/70 dark:text-amber-300/60 italic pl-11">
+              "Pantry Pest", "Carb Connoisseur", "Discipline Deficit Disaster", and personal callouts.
+            </p>
+          </div>
         </div>
 
         <!-- Data Backup & Portability -->
@@ -505,23 +618,45 @@
 
           <!-- Fields shown when sugar had -->
           <div id="sugar-details-container" class="space-y-3">
+            <!-- Existing items logged for this date -->
+            <div id="modal-existing-items-container" class="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 space-y-2 hidden">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                  <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                  <span id="modal-existing-items-count">Logged Treats (0)</span>
+                </span>
+                <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100" id="modal-existing-items-total">0g Total</span>
+              </div>
+              <div id="modal-existing-items-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Add Item Header -->
+            <div class="pt-1">
+              <span class="block text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                <span>Add a Treat / Item</span>
+                <span class="text-[10px] font-normal text-slate-400">Add multiple items as you enjoy them</span>
+              </span>
+            </div>
+
             <!-- Quick Chips for Common Items -->
             <div>
               <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Quick Select</label>
               <div class="flex flex-wrap gap-1.5" id="quick-items-chips">
+                <button type="button" data-name="Cold Coffee" data-grams="26" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Cold Coffee (26g)</button>
+                <button type="button" data-name="Ice Cream" data-grams="28" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Ice Cream (28g)</button>
                 <button type="button" data-name="Soda / Soft Drink" data-grams="39" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Soda (39g)</button>
-                <button type="button" data-name="Sweet Coffee / Tea" data-grams="26" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Sweet Coffee (26g)</button>
                 <button type="button" data-name="Chocolate / Candy" data-grams="24" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Chocolate (24g)</button>
                 <button type="button" data-name="Pastry / Cake" data-grams="22" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Pastry (22g)</button>
-                <button type="button" data-name="Ice Cream" data-grams="28" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Ice Cream (28g)</button>
-                <button type="button" data-name="Condiment / Dressing" data-grams="8" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Sauce (8g)</button>
+                <button type="button" data-name="Condiment / Sauce" data-grams="8" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Sauce (8g)</button>
               </div>
             </div>
 
             <!-- Item Name -->
             <div>
               <label for="input-item-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Item Name</label>
-              <input type="text" id="input-item-name" placeholder="e.g. Can of Cola, Chocolate donut" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              <input type="text" id="input-item-name" placeholder="e.g. Cold coffee, Ice cream, Donut" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
 
             <!-- Quantity with Unit Toggle -->
@@ -533,7 +668,7 @@
                 </div>
               </div>
               <div class="flex space-x-2">
-                <input type="number" id="input-sugar-quantity" step="0.5" min="0" placeholder="e.g. 24" class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <input type="number" id="input-sugar-quantity" step="0.5" min="0" placeholder="e.g. 26" class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 <span id="modal-unit-badge" class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center">g</span>
               </div>
             </div>
@@ -541,8 +676,14 @@
             <!-- Notes -->
             <div>
               <label for="input-sugar-notes" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Optional Notes</label>
-              <textarea id="input-sugar-notes" rows="2" placeholder="e.g. Team celebration at work, craving hit at 3pm" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+              <textarea id="input-sugar-notes" rows="2" placeholder="e.g. 3pm craving, dessert with dinner" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
             </div>
+
+            <!-- Add Item Button (keeps modal open to add more) -->
+            <button type="button" id="btn-add-item-modal" class="w-full py-2 px-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors">
+              <i data-lucide="plus" class="w-4 h-4 text-amber-600"></i>
+              <span>+ Add Another Item to Today</span>
+            </button>
           </div>
 
           <!-- Zero sugar note -->
@@ -582,6 +723,122 @@
       </div>
     </div>
 
+    <!-- MODAL: ONBOARDING / USER NAME PROMPT -->
+    <div id="modal-user-name" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl border border-brand-200 dark:border-brand-900/60 p-6 space-y-4 shadow-2xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center shadow-lg shadow-brand-500/30 mx-auto">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <div class="text-center space-y-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" id="name-modal-title">Welcome to Sugar Cut!</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed" id="name-modal-desc">
+            What should we call you? Your name will personalize your journey and daily habit tracking.
+          </p>
+        </div>
+        <form id="form-user-name" class="space-y-3">
+          <div>
+            <label for="input-user-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Your Name</label>
+            <input type="text" id="input-user-name" placeholder="e.g. Alan" maxlength="30" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <button type="submit" id="btn-save-user-name" class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-md shadow-brand-500/25 transition-transform active:scale-95">
+            Get Started
+          </button>
+          <button type="button" id="btn-skip-user-name" class="w-full py-1 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+            Skip for now
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- OVERLAY 1: HEROIC ZERO SUGAR CELEBRATION -->
+    <div id="overlay-hero-celebration" onclick="if (window.app) window.app.closeHeroCelebration()" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden pointer-events-auto cursor-pointer">
+      <!-- Rotating background rays -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-25">
+        <div class="w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-brand-500 via-emerald-400 to-amber-300 hero-rays blur-2xl"></div>
+      </div>
+
+      <div onclick="event.stopPropagation()" class="w-full max-w-sm bg-gradient-to-b from-slate-900 to-slate-950 border border-brand-500/40 rounded-3xl p-6 text-center space-y-4 shadow-2xl relative hero-animate-pop text-white cursor-default">
+        <!-- Glowing rings icon -->
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full bg-brand-500/30 hero-ring"></div>
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-500 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-brand-500/40 relative z-10">
+            <i data-lucide="trophy" class="w-10 h-10 stroke-[2.5] text-amber-100"></i>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/40 text-[11px] font-bold text-brand-300 uppercase tracking-widest">
+            ⚡ Clean Day Victory ⚡
+          </div>
+          <h3 class="text-xl font-extrabold text-white tracking-tight" id="hero-celebration-title">
+            Heroic Discipline!
+          </h3>
+          <p class="text-xs text-brand-100/90 leading-relaxed font-medium" id="hero-celebration-subtitle">
+            Zero added sugar logged. Insulin rested, vitality boosted!
+          </p>
+        </div>
+
+        <!-- Streak Badge Box -->
+        <div class="p-3.5 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🔥</span>
+            <div class="text-left">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Current Streak</span>
+              <span class="font-extrabold text-brand-300 text-sm" id="hero-streak-display">1 Clean Day</span>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/80">
+            0g Clean
+          </span>
+        </div>
+
+        <button id="btn-close-hero-overlay" onclick="if (window.app) window.app.closeHeroCelebration()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-400 hover:to-emerald-300 text-slate-950 font-black text-xs shadow-lg shadow-brand-500/30 transition-transform active:scale-95 uppercase tracking-wider cursor-pointer">
+          Claim Clean Victory 🏆
+        </button>
+      </div>
+    </div>
+
+    <!-- OVERLAY 2: LOSER / ROAST DEFEAT ANIMATION -->
+    <div id="overlay-loser-celebration" onclick="if (window.app) window.app.closeLoserCelebration()" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden pointer-events-auto cursor-pointer">
+      <div onclick="event.stopPropagation()" class="w-full max-w-sm bg-gradient-to-b from-slate-900 to-stone-950 border border-amber-500/50 rounded-3xl p-6 text-center space-y-4 shadow-2xl relative loser-animate-wobble text-white cursor-default">
+        <!-- Sad Treat / Loser Icon -->
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-600 to-red-600 text-white flex items-center justify-center shadow-lg shadow-red-900/50 relative z-10">
+            <span class="text-4xl" id="loser-icon-display">🥔</span>
+          </div>
+          <!-- Falling tear drops -->
+          <span class="absolute text-xs text-blue-400 -left-2 top-0 loser-tears">💧</span>
+          <span class="absolute text-xs text-blue-400 -right-2 top-2 loser-tears" style="animation-delay: 0.5s;">💧</span>
+        </div>
+
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-[11px] font-bold text-red-300 uppercase tracking-wider" id="loser-tagline">
+            ⚠️ Sugar Caught Red-Handed
+          </div>
+          <h3 class="text-lg font-black text-amber-400 tracking-tight leading-snug" id="loser-headline">
+            Streak Shattered!
+          </h3>
+          <div class="p-3 rounded-2xl bg-red-950/50 border border-red-800/60 text-xs text-red-100 font-bold leading-relaxed shadow-inner" id="loser-roast-body">
+            "Alan, you will be a potato if you go on like this!"
+          </div>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between text-xs text-left">
+          <div>
+            <span class="text-[10px] text-slate-400 block uppercase font-semibold">Treats Logged</span>
+            <span class="font-bold text-amber-300" id="loser-items-summary">Ice cream & candy</span>
+          </div>
+          <span class="text-xs font-black text-amber-400 bg-amber-950/60 px-2 py-1 rounded-lg border border-amber-800/80" id="loser-amount-badge">
+            25g Sugar
+          </span>
+        </div>
+
+        <button id="btn-close-loser-overlay" onclick="if (window.app) window.app.closeLoserCelebration()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg shadow-red-900/40 transition-transform active:scale-95 uppercase tracking-wider cursor-pointer">
+          Accept Defeat 😔
+        </button>
+      </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div id="app-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-xs w-full px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center space-x-2 pointer-events-none opacity-0 transition-all duration-300">
       <i data-lucide="check" class="w-4 h-4 text-brand-400 shrink-0" id="toast-icon"></i>
@@ -596,8 +853,136 @@
       LOGS: 'sugar_cut_logs_v1',
       SETTINGS: 'sugar_cut_settings_v1',
       LONGEST_STREAK: 'sugar_cut_longest_streak_v1',
-      UNLOCKED_BADGES: 'sugar_cut_unlocked_badges_v1'
+      UNLOCKED_BADGES: 'sugar_cut_unlocked_badges_v1',
+      USER_NAME: 'sugar_cut_user_name_v1'
     };
+
+    // Savage insult epithets & titles
+    const ROAST_TITLES = [
+      "Salad Saboteur",
+      "Carb Connoisseur",
+      "Calorie Collector",
+      "Gym-Phobic",
+      "Diet Deserter",
+      "Cheat-Day Champion",
+      "Spineless Snack-Goblin",
+      "Gluttony's Favorite Child",
+      "Couch-Potato Champion",
+      "Discipline Deficit Disaster",
+      "Refrigerator Raider",
+      "Pantry Pest",
+      "Carbonara Casualty"
+    ];
+
+    // Savage insult roast templates
+    const ROAST_TEMPLATES = [
+      "{name}, you piece of shit, sugar owned you again!",
+      "{name}, you will be a potato if you go on like this!",
+      "Oh look, {name} caved in like a wet cardboard box!",
+      "Congratulations {name}, you absolute Salad Saboteur, your willpower lasted about 5 minutes.",
+      "{name}, your pancreas is filing for a restraining order right now.",
+      "Another treat down the hatch, {name}? Couch-Potato Champion status confirmed!",
+      "Behold {name}, Gluttony's Favorite Child, lured into the pantry by empty promises and corn syrup.",
+      "{name}, even a jellyfish has more spine than your sugar resistance today!",
+      "Did the cupcake whisper sweet nothings to you, {name}? You Diet Deserter!",
+      "Breaking news: {name} surrendered to snacks. Discipline Deficit Disaster declared!"
+    ];
+
+    // Web Audio API Synthesizer (Zero external assets required, crisp native audio)
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+      }
+
+      getContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+        return this.ctx;
+      }
+
+      // Heroic triumphant fanfare chord progression: C4 -> E4 -> G4 -> C5 brass swell
+      playHeroicFanfare() {
+        try {
+          const ctx = this.getContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const notes = [
+            { freq: 261.63, start: 0.0, dur: 0.16 }, // C4
+            { freq: 329.63, start: 0.14, dur: 0.16 }, // E4
+            { freq: 392.00, start: 0.28, dur: 0.18 }, // G4
+            { freq: 523.25, start: 0.44, dur: 0.65 }  // High C5
+          ];
+
+          notes.forEach(({ freq, start, dur }) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle'; // Rich heroic brass harmonic tone
+            osc.frequency.setValueAtTime(freq, now + start);
+
+            gain.gain.setValueAtTime(0.0001, now + start);
+            gain.gain.exponentialRampToValueAtTime(0.3, now + start + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + start);
+            osc.stop(now + start + dur + 0.05);
+          });
+        } catch (e) {
+          console.warn("Audio playback not permitted yet:", e);
+        }
+      }
+
+      // Sad trombone defeat slide: descending dissonant wah-wah
+      playSadLoserSound() {
+        try {
+          const ctx = this.getContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          // Four descending sad notes (Wah wah wah waaaah)
+          const notes = [
+            { f1: 311.13, f2: 300, start: 0.0, dur: 0.28 },  // Eb4
+            { f1: 293.66, f2: 285, start: 0.32, dur: 0.28 }, // D4
+            { f1: 277.18, f2: 270, start: 0.64, dur: 0.32 }, // Db4
+            { f1: 261.63, f2: 215, start: 1.00, dur: 0.95 }  // C4 down-slur to low A3
+          ];
+
+          notes.forEach(({ f1, f2, start, dur }) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sawtooth'; // Comic buzzing trombone sound
+            osc.frequency.setValueAtTime(f1, now + start);
+            osc.frequency.exponentialRampToValueAtTime(f2, now + start + dur);
+
+            gain.gain.setValueAtTime(0.0001, now + start);
+            gain.gain.exponentialRampToValueAtTime(0.25, now + start + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + start);
+            osc.stop(now + start + dur + 0.05);
+          });
+        } catch (e) {
+          console.warn("Audio playback not permitted yet:", e);
+        }
+      }
+    }
+
+    const soundEngine = new SoundEngine();
 
     // Milestone definitions as specified
     const MILESTONES = [
@@ -677,6 +1062,7 @@
         this.initIconsAndPWA();
         this.attachEventListeners();
         this.renderAll();
+        this.checkFirstTimeOnboarding();
       }
 
       // --- DATE HELPERS ---
@@ -710,10 +1096,33 @@
       }
 
       // --- DATA STORE ---
+      normalizeLogEntry(entry) {
+        if (!entry) return null;
+        if (!Array.isArray(entry.itemsList)) {
+          if (entry.sugarGrams > 0) {
+            entry.itemsList = [{
+              id: 'item_' + (entry.timestamp || Date.now()),
+              name: entry.items || 'Sugar Treat',
+              sugarGrams: entry.sugarGrams,
+              notes: entry.notes || '',
+              time: ''
+            }];
+          } else {
+            entry.itemsList = [];
+          }
+        }
+        return entry;
+      }
+
       getLogs() {
         try {
           const raw = localStorage.getItem(STORAGE_KEYS.LOGS);
-          return raw ? JSON.parse(raw) : {};
+          if (!raw) return {};
+          const parsed = JSON.parse(raw);
+          for (const key in parsed) {
+            this.normalizeLogEntry(parsed[key]);
+          }
+          return parsed;
         } catch (e) {
           return {};
         }
@@ -724,12 +1133,130 @@
         this.calculateStreaksAndBadges();
       }
 
+      addItemToDate(dateStr, itemName, sugarGrams, notes = '') {
+        const logs = this.getLogs();
+        let entry = logs[dateStr];
+
+        if (!entry || entry.isZeroSugar) {
+          entry = {
+            id: `log-${dateStr}`,
+            date: dateStr,
+            isZeroSugar: false,
+            sugarGrams: 0,
+            itemsList: [],
+            items: '',
+            notes: notes,
+            timestamp: Date.now()
+          };
+          logs[dateStr] = entry;
+        } else {
+          this.normalizeLogEntry(entry);
+        }
+
+        const grams = Math.max(0, parseFloat(sugarGrams) || 0);
+        const name = (itemName && itemName.trim()) ? itemName.trim() : 'Sugar Treat';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const newItem = {
+          id: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          name: name,
+          sugarGrams: grams,
+          notes: notes ? notes.trim() : '',
+          time: timeStr,
+          timestamp: Date.now()
+        };
+
+        entry.itemsList.push(newItem);
+        entry.sugarGrams = entry.itemsList.reduce((sum, it) => sum + (parseFloat(it.sugarGrams) || 0), 0);
+        entry.isZeroSugar = entry.sugarGrams === 0;
+        entry.items = entry.itemsList.map(it => it.name).join(', ');
+        entry.timestamp = Date.now();
+
+        this.saveLogs(logs);
+        return newItem;
+      }
+
+      removeItemFromDate(dateStr, itemId) {
+        const logs = this.getLogs();
+        const entry = logs[dateStr];
+        if (!entry) return;
+
+        this.normalizeLogEntry(entry);
+        entry.itemsList = entry.itemsList.filter(it => it.id !== itemId);
+        entry.sugarGrams = entry.itemsList.reduce((sum, it) => sum + (parseFloat(it.sugarGrams) || 0), 0);
+        entry.items = entry.itemsList.map(it => it.name).join(', ');
+
+        if (entry.itemsList.length === 0) {
+          entry.sugarGrams = 0;
+          entry.isZeroSugar = true;
+          entry.items = '';
+        }
+
+        this.saveLogs(logs);
+
+        // Update modal list if open
+        this.renderModalItemsList(dateStr);
+        this.renderAll();
+        this.showToast(entry.sugarGrams === 0 ? 'All treats removed. Marked 0g!' : 'Item removed.');
+      }
+
+      getUserName() {
+        return (localStorage.getItem(STORAGE_KEYS.USER_NAME) || '').trim();
+      }
+
+      saveUserName(name) {
+        if (name && name.trim()) {
+          localStorage.setItem(STORAGE_KEYS.USER_NAME, name.trim());
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.USER_NAME);
+        }
+        this.applySettings();
+        this.renderAll();
+      }
+
+      openUserNameModal(isManualEdit = false) {
+        const modal = document.getElementById('modal-user-name');
+        const input = document.getElementById('input-user-name');
+        const title = document.getElementById('name-modal-title');
+        const desc = document.getElementById('name-modal-desc');
+        if (!modal || !input) return;
+
+        const currentName = this.getUserName();
+        input.value = currentName;
+
+        if (isManualEdit) {
+          if (title) title.textContent = "Update Your Name";
+          if (desc) desc.textContent = "Change the name used for personal greetings and roast mode.";
+        } else {
+          if (title) title.textContent = "Welcome to Sugar Cut! ✨";
+          if (desc) desc.textContent = "What should we call you? We'll personalize your clean sugar streak journey.";
+        }
+
+        modal.classList.remove('hidden');
+        setTimeout(() => input.focus(), 150);
+      }
+
+      closeUserNameModal() {
+        const modal = document.getElementById('modal-user-name');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      checkFirstTimeOnboarding() {
+        const name = this.getUserName();
+        // If no user name stored yet, show onboarding modal on first launch
+        if (!name) {
+          setTimeout(() => this.openUserNameModal(false), 300);
+        }
+      }
+
       getSettings() {
         try {
           const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-          return raw ? JSON.parse(raw) : { theme: 'system', unit: 'g' };
+          const defaults = { theme: 'system', unit: 'g', roastMode: true, soundEnabled: true };
+          return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
         } catch (e) {
-          return { theme: 'system', unit: 'g' };
+          return { theme: 'system', unit: 'g', roastMode: true, soundEnabled: true };
         }
       }
 
@@ -883,6 +1410,33 @@
             unitTsp.className = 'px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400';
           }
         }
+
+        // User Name Preview in settings
+        const userName = this.getUserName();
+        const namePreview = document.getElementById('settings-name-preview');
+        if (namePreview) {
+          namePreview.textContent = userName ? `Signed in as ${userName}` : 'Click edit to set your name';
+        }
+
+        // Sound Toggle Switch
+        const soundBtn = document.getElementById('btn-toggle-sound');
+        const soundThumb = document.getElementById('sound-toggle-thumb');
+        if (soundBtn && soundThumb) {
+          const isSoundOn = settings.soundEnabled !== false;
+          soundBtn.className = `relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isSoundOn ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`;
+          soundThumb.className = `pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${isSoundOn ? 'translate-x-5' : 'translate-x-0'}`;
+          soundBtn.setAttribute('aria-checked', isSoundOn ? 'true' : 'false');
+        }
+
+        // Roast Mode Toggle Switch
+        const roastBtn = document.getElementById('btn-toggle-roast-mode');
+        const roastThumb = document.getElementById('roast-toggle-thumb');
+        if (roastBtn && roastThumb) {
+          const isRoastOn = !!settings.roastMode;
+          roastBtn.className = `relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isRoastOn ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'}`;
+          roastThumb.className = `pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${isRoastOn ? 'translate-x-5' : 'translate-x-0'}`;
+          roastBtn.setAttribute('aria-checked', isRoastOn ? 'true' : 'false');
+        }
       }
 
       initIconsAndPWA() {
@@ -1001,6 +1555,19 @@
         const { currentStreak, longestStreak } = this.calculateStreaksAndBadges();
         const settings = this.getSettings();
 
+        // 0. Personalized Greeting Banner
+        const userName = this.getUserName();
+        const greetingBanner = document.getElementById('user-greeting-banner');
+        const greetingText = document.getElementById('user-greeting-text');
+        if (greetingBanner && greetingText) {
+          if (userName) {
+            greetingBanner.classList.remove('hidden');
+            greetingText.textContent = `Welcome back, ${userName}!`;
+          } else {
+            greetingBanner.classList.add('hidden');
+          }
+        }
+
         // 1. Primary Streak Counter
         const streakValEl = document.getElementById('streak-counter-value');
         if (streakValEl) streakValEl.textContent = currentStreak;
@@ -1094,54 +1661,130 @@
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
               </button>
             </div>
+            <div class="mt-3 pt-2.5 border-t border-brand-200/60 dark:border-brand-900/40 flex items-center justify-between">
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">Had an unexpected treat later?</span>
+              <button id="btn-add-treat-today-secondary" class="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:text-amber-600 flex items-center gap-1 transition-colors">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span>+ Log a treat</span>
+              </button>
+            </div>
           `;
 
           if (supportiveCard) {
             supportiveCard.className = 'hidden';
           }
         } else {
-          // SUGAR LOGGED TODAY (Reset streak with supportive, encouraging message!)
+          // SUGAR LOGGED TODAY (Multiple items support with itemized breakdown)
           const unitLabel = settings.unit === 'tsp' ? 'tsp' : 'g';
           const displayedAmount = settings.unit === 'tsp' ? (todayEntry.sugarGrams / 4).toFixed(1) : todayEntry.sugarGrams;
+          const itemsList = Array.isArray(todayEntry.itemsList) && todayEntry.itemsList.length > 0 
+            ? todayEntry.itemsList 
+            : [{ id: 'legacy-1', name: todayEntry.items || 'Sugar Treat', sugarGrams: todayEntry.sugarGrams, notes: todayEntry.notes || '' }];
+          const itemCount = itemsList.length;
 
           actionCard.className = 'rounded-2xl p-5 border border-amber-300 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 shadow-xs';
           actionCard.innerHTML = `
-            <div class="flex items-start justify-between">
-              <div class="flex items-start space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
-                  <i data-lucide="info" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Sugar Logged Today</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-semibold">${displayedAmount} ${unitLabel}</span>
+            <div class="space-y-3">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start space-x-3">
+                  <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
+                    <i data-lucide="cup-soda" class="w-5 h-5"></i>
                   </div>
-                  <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    ${todayEntry.items || 'Sugar Treat'}
-                  </p>
-                  ${todayEntry.notes ? `<p class="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">"${todayEntry.notes}"</p>` : ''}
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Sugar Logged Today</span>
+                      <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 font-extrabold">
+                        ${displayedAmount} ${unitLabel} (${itemCount} ${itemCount === 1 ? 'treat' : 'treats'})
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Log each item you enjoyed — totals calculate automatically.
+                    </p>
+                  </div>
                 </div>
+                <button id="btn-edit-today-log" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit Log">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
               </div>
-              <button id="btn-edit-today-log" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit Today's Log">
-                <i data-lucide="edit-3" class="w-4 h-4"></i>
-              </button>
+
+              <!-- Itemized treats list -->
+              <div class="space-y-1.5 pt-1">
+                ${itemsList.map(it => `
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-amber-900/60 text-xs shadow-2xs">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                      <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                      <div class="min-w-0">
+                        <span class="font-bold text-slate-900 dark:text-white truncate block">${it.name}</span>
+                        ${it.notes ? `<span class="text-[10px] text-slate-400 italic truncate block">${it.notes}</span>` : ''}
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                      <span class="font-extrabold text-amber-700 dark:text-amber-300">
+                        ${settings.unit === 'tsp' ? (it.sugarGrams / 4).toFixed(1) + ' tsp' : it.sugarGrams + 'g'}
+                      </span>
+                      <button onclick="app.removeItemFromDate('${todayStr}', '${it.id}')" class="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors" title="Remove ${it.name}">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Action buttons: Add Another Item + Reset to 0g -->
+              <div class="flex items-center gap-2 pt-1">
+                <button id="btn-add-another-treat-today" class="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-xs flex items-center justify-center space-x-1.5 transition-transform active:scale-95">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                  <span>+ Add Another Item</span>
+                </button>
+                <button id="btn-revert-zero-today" class="py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-colors" title="Reset this day to 0g Zero Sugar">
+                  Set 0g Clean
+                </button>
+              </div>
             </div>
           `;
 
-          // Supportive Encouragement Message (Mandated by requirement)
+          // Supportive Encouragement Message OR Savage Roast Message based on user preference
           if (supportiveCard) {
-            supportiveCard.className = 'rounded-2xl p-4 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-start space-x-3 text-xs leading-relaxed';
-            supportiveCard.innerHTML = `
-              <div class="w-6 h-6 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
-              </div>
-              <div>
-                <strong class="text-slate-900 dark:text-white font-semibold">Streak reset, but not your progress!</strong>
-                <p class="mt-0.5 text-slate-600 dark:text-slate-400">
-                  Every clean day you logged permanently improved your metabolic foundation. What matters is the next choice. Tomorrow is Day 1 of your best streak yet!
-                </p>
-              </div>
-            `;
+            const userName = this.getUserName() || 'Friend';
+            if (settings.roastMode) {
+              // Savage Roast Mode is active
+              const randomTitle = ROAST_TITLES[Math.floor(Math.random() * ROAST_TITLES.length)];
+              const randomRoast = ROAST_TEMPLATES[Math.floor(Math.random() * ROAST_TEMPLATES.length)].replace(/\{name\}/g, userName);
+
+              supportiveCard.className = 'rounded-2xl p-4 bg-gradient-to-r from-red-50 to-amber-50 dark:from-red-950/40 dark:to-amber-950/40 border border-red-300/80 dark:border-red-900/60 text-slate-800 dark:text-slate-200 flex items-start space-x-3 text-xs leading-relaxed shadow-xs';
+              supportiveCard.innerHTML = `
+                <div class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 mt-0.5 text-base shadow-xs">
+                  🥔
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide text-[10px] bg-red-100 dark:bg-red-900/60 px-2 py-0.5 rounded-full">
+                      Savage Roast • ${randomTitle}
+                    </span>
+                  </div>
+                  <p class="font-bold text-slate-900 dark:text-white text-xs">
+                    "${randomRoast}"
+                  </p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Want tender encouragement instead? You can turn off Savage Roast Mode in Settings anytime.
+                  </p>
+                </div>
+              `;
+            } else {
+              // Standard Supportive Encouragement Message
+              supportiveCard.className = 'rounded-2xl p-4 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-start space-x-3 text-xs leading-relaxed';
+              supportiveCard.innerHTML = `
+                <div class="w-6 h-6 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <strong class="text-slate-900 dark:text-white font-semibold">Streak reset, but not your progress!</strong>
+                  <p class="mt-0.5 text-slate-600 dark:text-slate-400">
+                    Every clean day you logged permanently improved your metabolic foundation. What matters is the next choice. Tomorrow is Day 1 of your best streak yet!
+                  </p>
+                </div>
+              `;
+            }
           }
         }
 
@@ -1233,6 +1876,24 @@
         const editTodayBtn = document.getElementById('btn-edit-today-log');
         if (editTodayBtn) {
           editTodayBtn.onclick = () => this.openLogModal(todayStr, true);
+        }
+
+        const addTreatSecondary = document.getElementById('btn-add-treat-today-secondary');
+        if (addTreatSecondary) {
+          addTreatSecondary.onclick = () => this.openLogModal(todayStr, false);
+        }
+
+        const addAnotherTreatToday = document.getElementById('btn-add-another-treat-today');
+        if (addAnotherTreatToday) {
+          addAnotherTreatToday.onclick = () => this.openLogModal(todayStr, false);
+        }
+
+        const revertZeroToday = document.getElementById('btn-revert-zero-today');
+        if (revertZeroToday) {
+          revertZeroToday.onclick = () => {
+            this.logZeroSugar(todayStr);
+            this.showToast('Reverted today to 0g Zero Sugar!');
+          };
         }
 
         const nextMilestoneLink = document.getElementById('card-next-milestone-link');
@@ -1339,6 +2000,7 @@
               const item = logs[dateStr];
               const isZero = item.sugarGrams === 0;
               const displayQty = settings.unit === 'tsp' ? (item.sugarGrams / 4).toFixed(1) : item.sugarGrams;
+              const hasMultiple = Array.isArray(item.itemsList) && item.itemsList.length > 1;
 
               listHtml += `
                 <div class="p-3 rounded-xl border ${isZero ? 'border-brand-200/80 dark:border-brand-900/60 bg-brand-50/40 dark:bg-brand-950/20' : 'border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20'} flex items-start justify-between text-xs">
@@ -1350,10 +2012,20 @@
                       <div class="flex items-center space-x-2">
                         <span class="font-bold text-slate-900 dark:text-white">${this.formatDisplayDate(dateStr)}</span>
                         <span class="text-[10px] text-slate-400">(${dateStr})</span>
+                        ${hasMultiple ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold">${item.itemsList.length} treats</span>` : ''}
                       </div>
                       <p class="font-semibold ${isZero ? 'text-brand-700 dark:text-brand-300' : 'text-amber-700 dark:text-amber-300'} mt-0.5">
-                        ${isZero ? 'Zero Sugar (0g)' : `${displayQty} ${unitLabel} — ${item.items || 'Sugar Treat'}`}
+                        ${isZero ? 'Zero Sugar (0g)' : `${displayQty} ${unitLabel} Total — ${item.items || 'Sugar Treat'}`}
                       </p>
+                      ${hasMultiple ? `
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          ${item.itemsList.map(it => `
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800/80 border border-amber-200 dark:border-amber-900/60 text-slate-700 dark:text-slate-300">
+                              ${it.name} (${settings.unit === 'tsp' ? (it.sugarGrams / 4).toFixed(1) + ' tsp' : it.sugarGrams + 'g'})
+                            </span>
+                          `).join('')}
+                        </div>
+                      ` : ''}
                       ${item.notes ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 italic">"${item.notes}"</p>` : ''}
                     </div>
                   </div>
@@ -1409,26 +2081,49 @@
         } else {
           const isZero = entry.sugarGrams === 0;
           const displayQty = settings.unit === 'tsp' ? (entry.sugarGrams / 4).toFixed(1) : entry.sugarGrams;
+          const itemsList = Array.isArray(entry.itemsList) ? entry.itemsList : [];
+          const itemCount = itemsList.length;
+
           inspectorEl.innerHTML = `
-            <div class="flex items-center justify-between">
-              <div class="space-y-0.5">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                   <p class="text-xs font-bold text-slate-900 dark:text-white">${this.formatDisplayDate(dateStr)} (${dateStr})</p>
                   <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isZero ? 'bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">
-                    ${isZero ? '0g Clean' : `${displayQty} ${unitLabel}`}
+                    ${isZero ? '0g Clean' : `${displayQty} ${unitLabel} (${itemCount} ${itemCount === 1 ? 'treat' : 'treats'})`}
                   </span>
                 </div>
-                ${entry.items ? `<p class="text-xs text-slate-600 dark:text-slate-300 font-medium">${entry.items}</p>` : ''}
-                ${entry.notes ? `<p class="text-[11px] text-slate-400 italic">"${entry.notes}"</p>` : ''}
+                <div class="flex items-center space-x-1">
+                  <button onclick="app.openLogModal('${dateStr}', true)" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
+                    + Add Item
+                  </button>
+                  <button onclick="app.promptDeleteDate('${dateStr}')" class="px-2.5 py-1 rounded-lg text-red-600 border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-medium">
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div class="flex space-x-1">
-                <button onclick="app.openLogModal('${dateStr}', true)" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
-                  Edit
-                </button>
-                <button onclick="app.promptDeleteDate('${dateStr}')" class="px-2.5 py-1.5 rounded-xl text-red-600 border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-medium">
-                  Delete
-                </button>
-              </div>
+
+              ${!isZero && itemsList.length > 0 ? `
+                <div class="space-y-1 pt-1">
+                  ${itemsList.map(it => `
+                    <div class="flex items-center justify-between p-1.5 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                      <div class="flex items-center space-x-2 min-w-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                        <span class="text-slate-800 dark:text-slate-200 truncate">${it.name}</span>
+                        ${it.notes ? `<span class="text-[10px] text-slate-400 italic truncate">(${it.notes})</span>` : ''}
+                      </div>
+                      <div class="flex items-center space-x-2 shrink-0">
+                        <span class="font-bold text-amber-600 dark:text-amber-400">
+                          ${settings.unit === 'tsp' ? (it.sugarGrams / 4).toFixed(1) + ' tsp' : it.sugarGrams + 'g'}
+                        </span>
+                        <button onclick="app.removeItemFromDate('${dateStr}', '${it.id}')" class="text-slate-400 hover:text-red-600 p-0.5" title="Delete ${it.name}">
+                          <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
             </div>
           `;
         }
@@ -1514,7 +2209,90 @@
         // Handled directly via settings events and current state
       }
 
-      // --- LOG ACTIONS ---
+      // --- LOG ACTIONS & CELEBRATIONS ---
+      showHeroCelebration(dateStr, streak) {
+        const overlay = document.getElementById('overlay-hero-celebration');
+        const titleEl = document.getElementById('hero-celebration-title');
+        const subtitleEl = document.getElementById('hero-celebration-subtitle');
+        const streakEl = document.getElementById('hero-streak-display');
+        if (!overlay) return;
+
+        const userName = this.getUserName();
+        if (titleEl) {
+          titleEl.textContent = userName ? `${userName}, Victory Claimed!` : 'Heroic Clean Victory!';
+        }
+        if (subtitleEl) {
+          subtitleEl.textContent = `${this.formatDisplayDate(dateStr)} was conquered with 0g added sugar. You resisted the dopamine trap!`;
+        }
+        if (streakEl) {
+          streakEl.textContent = `${streak} Clean ${streak === 1 ? 'Day' : 'Days'}`;
+        }
+
+        const settings = this.getSettings();
+        if (settings.soundEnabled !== false) {
+          soundEngine.playHeroicFanfare();
+        }
+
+        overlay.classList.remove('hidden');
+      }
+
+      closeHeroCelebration() {
+        const overlay = document.getElementById('overlay-hero-celebration');
+        if (overlay) overlay.classList.add('hidden');
+      }
+
+      showLoserCelebration(dateStr, totalSugarGrams, itemsSummary) {
+        const overlay = document.getElementById('overlay-loser-celebration');
+        const headlineEl = document.getElementById('loser-headline');
+        const roastBodyEl = document.getElementById('loser-roast-body');
+        const summaryEl = document.getElementById('loser-items-summary');
+        const amountEl = document.getElementById('loser-amount-badge');
+        const iconEl = document.getElementById('loser-icon-display');
+        if (!overlay) return;
+
+        const userName = this.getUserName() || 'Friend';
+        const settings = this.getSettings();
+
+        // Audio
+        if (settings.soundEnabled !== false) {
+          soundEngine.playSadLoserSound();
+        }
+
+        // Summary item text
+        if (summaryEl) summaryEl.textContent = itemsSummary || 'Sweet treat';
+        if (amountEl) {
+          const unit = settings.unit === 'tsp' ? 'tsp' : 'g';
+          const amt = settings.unit === 'tsp' ? (totalSugarGrams / 4).toFixed(1) : totalSugarGrams;
+          amountEl.textContent = `${amt} ${unit} Sugar`;
+        }
+
+        if (settings.roastMode) {
+          // Savage roast mode enabled!
+          const randomTitle = ROAST_TITLES[Math.floor(Math.random() * ROAST_TITLES.length)];
+          const randomRoast = ROAST_TEMPLATES[Math.floor(Math.random() * ROAST_TEMPLATES.length)].replace(/\{name\}/g, userName);
+          const loserIcons = ['🥔', '🤡', '🧁', '🍩', '🦥', '🍫'];
+          const randomIcon = loserIcons[Math.floor(Math.random() * loserIcons.length)];
+
+          if (iconEl) iconEl.textContent = randomIcon;
+          if (headlineEl) headlineEl.textContent = `${randomTitle} Spotted!`;
+          if (roastBodyEl) roastBodyEl.textContent = `"${randomRoast}"`;
+        } else {
+          // Standard gentle notice
+          if (iconEl) iconEl.textContent = '🧁';
+          if (headlineEl) headlineEl.textContent = `Streak Reset for ${this.formatDisplayDate(dateStr)}`;
+          if (roastBodyEl) {
+            roastBodyEl.textContent = `You had ${totalSugarGrams}g of treats today. Don't worry, progress isn't lost! Reset tomorrow and crush it.`;
+          }
+        }
+
+        overlay.classList.remove('hidden');
+      }
+
+      closeLoserCelebration() {
+        const overlay = document.getElementById('overlay-loser-celebration');
+        if (overlay) overlay.classList.add('hidden');
+      }
+
       logZeroSugar(dateStr) {
         const logs = this.getLogs();
         logs[dateStr] = {
@@ -1530,41 +2308,96 @@
         this.saveLogs(logs);
         this.triggerConfetti();
         this.showToast('🌿 Zero Sugar logged! Streak extended.');
+        
+        const { currentStreak } = this.calculateStreaksAndBadges();
+        this.showHeroCelebration(dateStr, currentStreak);
         this.renderAll();
       }
 
       saveSugarEntry(dateStr, sugarGrams, items, notes) {
         const logs = this.getLogs();
-        const isZero = sugarGrams <= 0;
+        let entry = logs[dateStr];
 
-        logs[dateStr] = {
-          id: `log-${dateStr}`,
-          date: dateStr,
-          isZeroSugar: isZero,
-          sugarGrams: isZero ? 0 : sugarGrams,
-          items: items || (isZero ? '' : 'Sugar Treat'),
-          notes: notes || '',
-          timestamp: Date.now()
-        };
-
-        this.saveLogs(logs);
-
-        if (isZero) {
-          this.triggerConfetti();
-          this.showToast('🌿 Zero Sugar logged!');
-        } else {
-          this.showToast('🧁 Logged. Fresh start beginning now!');
+        if (sugarGrams <= 0 && (!entry || !entry.itemsList || entry.itemsList.length === 0)) {
+          this.logZeroSugar(dateStr);
+          this.closeLogModal();
+          return;
         }
 
+        // If items were passed directly, add as an item
+        if (sugarGrams > 0 || (items && items.trim())) {
+          this.addItemToDate(dateStr, items, sugarGrams, notes);
+        }
+
+        const updatedLogs = this.getLogs();
+        const updatedEntry = updatedLogs[dateStr] || {};
+        const totalGrams = updatedEntry.sugarGrams || sugarGrams || 0;
+        const allItemsName = (updatedEntry.itemsList && updatedEntry.itemsList.length > 0)
+          ? updatedEntry.itemsList.map(it => it.name).join(', ')
+          : (items || 'Treat');
+
+        this.showToast('🧁 Treats saved for ' + this.formatDisplayDate(dateStr));
         this.closeLogModal();
         this.renderAll();
+
+        // Trigger loser / roast celebration if sugar intake was recorded
+        if (totalGrams > 0) {
+          this.showLoserCelebration(dateStr, totalGrams, allItemsName);
+        }
+      }
+
+      renderModalItemsList(dateStr) {
+        const container = document.getElementById('modal-existing-items-container');
+        const countEl = document.getElementById('modal-existing-items-count');
+        const totalEl = document.getElementById('modal-existing-items-total');
+        const listEl = document.getElementById('modal-existing-items-list');
+        if (!container || !listEl) return;
+
+        const logs = this.getLogs();
+        const entry = logs[dateStr];
+        const settings = this.getSettings();
+        const unitLabel = settings.unit === 'tsp' ? 'tsp' : 'g';
+
+        if (!entry || !Array.isArray(entry.itemsList) || entry.itemsList.length === 0 || entry.sugarGrams === 0) {
+          container.classList.add('hidden');
+          return;
+        }
+
+        container.classList.remove('hidden');
+        const count = entry.itemsList.length;
+        if (countEl) countEl.textContent = `Logged Treats (${count})`;
+
+        const totalDisplay = settings.unit === 'tsp' ? (entry.sugarGrams / 4).toFixed(1) : entry.sugarGrams;
+        if (totalEl) totalEl.textContent = `${totalDisplay} ${unitLabel} Total`;
+
+        listEl.innerHTML = entry.itemsList.map(it => {
+          const itemDisplay = settings.unit === 'tsp' ? (it.sugarGrams / 4).toFixed(1) : it.sugarGrams;
+          return `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 border border-amber-200/80 dark:border-amber-900/60 text-xs shadow-2xs">
+              <div class="flex items-center space-x-2 min-w-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                <div class="min-w-0">
+                  <span class="font-bold text-slate-800 dark:text-slate-200 truncate block">${it.name}</span>
+                  ${it.notes ? `<span class="text-[10px] text-slate-400 italic truncate block">${it.notes}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 shrink-0">
+                <span class="font-extrabold text-amber-700 dark:text-amber-300">${itemDisplay} ${unitLabel}</span>
+                <button type="button" onclick="app.removeItemFromDate('${dateStr}', '${it.id}')" class="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors" title="Remove ${it.name}">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        this.refreshLucideIcons();
       }
 
       openLogModal(dateStr, isEdit = false) {
         this.editingDateStr = dateStr;
         const modal = document.getElementById('modal-log-sugar');
         const title = document.getElementById('modal-log-title');
-        const subtitle = document.getElementById('modal-log-subtitle');
         const dateInput = document.getElementById('input-log-date');
         const itemNameInput = document.getElementById('input-item-name');
         const qtyInput = document.getElementById('input-sugar-quantity');
@@ -1572,27 +2405,24 @@
         const settings = this.getSettings();
 
         if (dateInput) dateInput.value = dateStr;
-        if (title) title.textContent = isEdit ? `Edit Log: ${this.formatDisplayDate(dateStr)}` : `Log Intake: ${this.formatDisplayDate(dateStr)}`;
+        if (title) title.textContent = `Log Treats: ${this.formatDisplayDate(dateStr)}`;
 
         const logs = this.getLogs();
         const existing = logs[dateStr];
 
-        if (existing) {
-          if (existing.sugarGrams === 0) {
-            this.setModalSugarType('zero');
-          } else {
-            this.setModalSugarType('had');
-            const val = settings.unit === 'tsp' ? (existing.sugarGrams / 4) : existing.sugarGrams;
-            if (qtyInput) qtyInput.value = val;
-            if (itemNameInput) itemNameInput.value = existing.items || '';
-            if (notesInput) notesInput.value = existing.notes || '';
-          }
+        // Clear input form for adding an item
+        if (qtyInput) qtyInput.value = '';
+        if (itemNameInput) itemNameInput.value = '';
+        if (notesInput) notesInput.value = '';
+
+        if (existing && existing.sugarGrams === 0 && (!existing.itemsList || existing.itemsList.length === 0)) {
+          this.setModalSugarType('zero');
         } else {
           this.setModalSugarType('had');
-          if (qtyInput) qtyInput.value = '';
-          if (itemNameInput) itemNameInput.value = '';
-          if (notesInput) notesInput.value = '';
         }
+
+        // Render any previously logged items for this date
+        this.renderModalItemsList(dateStr);
 
         // Update modal unit label
         const modalUnitBadge = document.getElementById('modal-unit-badge');
@@ -1782,6 +2612,44 @@
           };
         });
 
+        // Add Another Item button in Modal
+        const addItemModalBtn = document.getElementById('btn-add-item-modal');
+        if (addItemModalBtn) {
+          addItemModalBtn.onclick = () => {
+            const dateStr = document.getElementById('input-log-date').value || this.getTodayDateString();
+            const nameInput = document.getElementById('input-item-name');
+            const qtyInput = document.getElementById('input-sugar-quantity');
+            const notesInput = document.getElementById('input-sugar-notes');
+            const settings = this.getSettings();
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const rawQty = parseFloat(qtyInput ? qtyInput.value : '0') || 0;
+            const notes = notesInput ? notesInput.value.trim() : '';
+
+            if (!name && rawQty <= 0) {
+              this.showToast('Please enter an item name or sugar quantity first.');
+              if (nameInput) nameInput.focus();
+              return;
+            }
+
+            const grams = settings.unit === 'tsp' ? (rawQty * 4) : rawQty;
+            const addedItem = this.addItemToDate(dateStr, name || 'Sugar Treat', grams, notes);
+
+            // Reset input fields so user can immediately add another treat (e.g. cold coffee then ice cream)
+            if (nameInput) {
+              nameInput.value = '';
+              nameInput.focus();
+            }
+            if (qtyInput) qtyInput.value = '';
+            if (notesInput) notesInput.value = '';
+
+            // Update modal display and background views immediately
+            this.renderModalItemsList(dateStr);
+            this.renderAll();
+            this.showToast(`Added "${addedItem.name}"! You can add another item now.`);
+          };
+        }
+
         // Form Submit for Log
         const logForm = document.getElementById('form-log-sugar');
         if (logForm) {
@@ -1794,13 +2662,40 @@
               this.logZeroSugar(dateStr);
               this.closeLogModal();
             } else {
-              const name = document.getElementById('input-item-name').value.trim();
-              const rawQty = parseFloat(document.getElementById('input-sugar-quantity').value || '0');
-              const notes = document.getElementById('input-sugar-notes').value.trim();
+              const nameInput = document.getElementById('input-item-name');
+              const qtyInput = document.getElementById('input-sugar-quantity');
+              const notesInput = document.getElementById('input-sugar-notes');
               const settings = this.getSettings();
 
-              const grams = settings.unit === 'tsp' ? (rawQty * 4) : rawQty;
-              this.saveSugarEntry(dateStr, grams, name, notes);
+              const name = nameInput ? nameInput.value.trim() : '';
+              const rawQty = parseFloat(qtyInput ? qtyInput.value : '0') || 0;
+              const notes = notesInput ? notesInput.value.trim() : '';
+
+              // If user filled in the input fields before hitting save, add that item
+              if (name || rawQty > 0) {
+                const grams = settings.unit === 'tsp' ? (rawQty * 4) : rawQty;
+                this.addItemToDate(dateStr, name || 'Sugar Treat', grams, notes);
+              } else {
+                // If inputs are empty, verify if this date already has items logged
+                const logs = this.getLogs();
+                const entry = logs[dateStr];
+                if (!entry || !entry.itemsList || entry.itemsList.length === 0) {
+                  this.addItemToDate(dateStr, 'Sugar Treat', 25, '');
+                }
+              }
+
+              this.closeLogModal();
+              this.renderAll();
+              this.showToast('Intake logged for ' + this.formatDisplayDate(dateStr));
+
+              // Trigger abuse / defeat popup celebration
+              const updatedLogs = this.getLogs();
+              const updatedEntry = updatedLogs[dateStr] || {};
+              const totalGrams = updatedEntry.sugarGrams || (rawQty > 0 ? (settings.unit === 'tsp' ? rawQty * 4 : rawQty) : 25);
+              const allItemsName = (updatedEntry.itemsList && updatedEntry.itemsList.length > 0)
+                ? updatedEntry.itemsList.map(it => it.name).join(', ')
+                : (name || 'Sugar Treat');
+              this.showLoserCelebration(dateStr, totalGrams, allItemsName);
             }
           };
         }
@@ -1816,6 +2711,112 @@
         }
         if (execDeleteBtn) {
           execDeleteBtn.onclick = () => this.executeDelete();
+        }
+
+        // Name Modal Controls
+        const saveNameBtn = document.getElementById('btn-save-user-name');
+        const skipNameBtn = document.getElementById('btn-skip-user-name');
+        const closeNameBtn = document.getElementById('btn-close-name-modal');
+        const inputName = document.getElementById('input-user-name');
+        const editNameSettingsBtn = document.getElementById('btn-edit-user-name');
+
+        if (saveNameBtn) {
+          saveNameBtn.onclick = () => {
+            const val = inputName ? inputName.value.trim() : '';
+            if (val) {
+              this.saveUserName(val);
+              this.showToast(`Great to have you here, ${val}!`);
+            }
+            this.closeUserNameModal();
+          };
+        }
+        if (skipNameBtn) {
+          skipNameBtn.onclick = () => {
+            this.closeUserNameModal();
+          };
+        }
+        if (closeNameBtn) {
+          closeNameBtn.onclick = () => {
+            this.closeUserNameModal();
+          };
+        }
+        if (inputName) {
+          inputName.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const val = inputName.value.trim();
+              if (val) {
+                this.saveUserName(val);
+                this.showToast(`Great to have you here, ${val}!`);
+              }
+              this.closeUserNameModal();
+            }
+          });
+        }
+        if (editNameSettingsBtn) {
+          editNameSettingsBtn.onclick = () => {
+            this.openUserNameModal(true);
+          };
+        }
+
+        // Hero Celebration Overlay Close (Claim Clean Victory)
+        const heroCloseBtn = document.getElementById('btn-close-hero-overlay') || document.getElementById('btn-dismiss-hero-celebration');
+        if (heroCloseBtn) {
+          heroCloseBtn.onclick = (e) => {
+            if (e) e.stopPropagation();
+            this.closeHeroCelebration();
+          };
+        }
+
+        // Loser Celebration Overlay Close (Accept Defeat)
+        const loserCloseBtn = document.getElementById('btn-close-loser-overlay') || document.getElementById('btn-dismiss-loser-celebration');
+        if (loserCloseBtn) {
+          loserCloseBtn.onclick = (e) => {
+            if (e) e.stopPropagation();
+            this.closeLoserCelebration();
+          };
+        }
+
+        // Global Escape key listener to dismiss popups
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.closeHeroCelebration();
+            this.closeLoserCelebration();
+            this.closeLogModal();
+            this.closeUserNameModal();
+          }
+        });
+
+        // Settings: Sound Toggle Switch
+        const soundBtn = document.getElementById('btn-toggle-sound');
+        if (soundBtn) {
+          soundBtn.onclick = () => {
+            const settings = this.getSettings();
+            settings.soundEnabled = settings.soundEnabled === false ? true : false;
+            this.saveSettings(settings);
+            if (settings.soundEnabled) {
+              soundEngine.playHeroicFanfare();
+              this.showToast('Audio fanfare enabled 🔔');
+            } else {
+              this.showToast('Audio muted 🔕');
+            }
+          };
+        }
+
+        // Settings: Savage Roast Mode Toggle Switch
+        const roastBtn = document.getElementById('btn-toggle-roast-mode');
+        if (roastBtn) {
+          roastBtn.onclick = () => {
+            const settings = this.getSettings();
+            settings.roastMode = !settings.roastMode;
+            this.saveSettings(settings);
+            this.renderAll();
+            if (settings.roastMode) {
+              this.showToast('🔥 Savage Roast Mode ACTIVATED! Watch out.');
+            } else {
+              this.showToast('Gentle Encouragement Mode restored.');
+            }
+          };
         }
 
         // Settings: Theme Toggle

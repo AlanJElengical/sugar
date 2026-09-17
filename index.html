@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Sugar Cut — Daily Sugar-Free Habit & Streak Tracker</title>
+  <meta name="description" content="Mobile-first PWA to track daily sugar-free streaks, log sugar intake, unlock milestone badges, and maintain healthy habits." />
+
+  <!-- OpenGraph & Social Sharing -->
+  <meta property="og:title" content="Sugar Cut — Daily Sugar-Free Habit Tracker" />
+  <meta property="og:description" content="Track your sugar cut streak, log daily intake, and build lasting vitality." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+
+  <!-- PWA & Apple iOS Mobile Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sugar Cut" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#10b981" id="meta-theme-color" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- Dynamically injected Favicon & Apple Touch Icon -->
+  <link rel="icon" type="image/svg+xml" id="app-favicon" />
+  <link rel="apple-touch-icon" id="app-apple-touch-icon" />
+
+  <!-- Inline Web App Manifest (data URI for zero-backend instant installability) -->
+  <link rel="manifest" id="app-manifest" />
+
+  <!-- Tailwind CSS CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            },
+            coral: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              300: '#fda4af',
+              400: '#fb7185',
+              500: '#f43f5e',
+              600: '#e11d48',
+            },
+            amber: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          },
+          fontFamily: {
+            sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* iOS Safe Area Inset Support */
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+    
+    body {
+      padding-top: var(--sat);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    input, textarea, button {
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+
+    .safe-bottom-nav {
+      padding-bottom: calc(0.5rem + var(--sab));
+    }
+
+    .content-container {
+      padding-bottom: calc(5.5rem + var(--sab));
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 4px;
+    }
+
+    /* Pulse animation for pending prompt */
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .pulse-gentle {
+      animation: gentlePulse 2.8s ease-in-out infinite;
+    }
+
+    /* Badge glow effect */
+    .glow-brand {
+      box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
+    }
+    .glow-coral {
+      box-shadow: 0 0 20px -3px rgba(244, 63, 94, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-full font-sans antialiased transition-colors duration-200">
+  <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative">
+
+    <!-- Top App Bar -->
+    <header class="sticky top-0 z-30 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center shadow-sm shadow-brand-500/30">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
+            Sugar Cut
+            <span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950/80 dark:text-brand-300">0g</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="header-date-display">Today</p>
+        </div>
+      </div>
+
+      <!-- Quick Header Stats & Actions -->
+      <div class="flex items-center space-x-2">
+        <div id="header-streak-pill" class="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200/80 dark:border-brand-800/60 text-brand-700 dark:text-brand-300 text-xs font-semibold">
+          <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500 fill-amber-500"></i>
+          <span id="header-streak-count">0</span>
+          <span class="text-[10px] opacity-75">d</span>
+        </div>
+        <button id="btn-open-settings-shortcut" aria-label="Settings" class="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main View Area (Dynamically Rendered via Tab state) -->
+    <main class="flex-1 px-4 pt-3 content-container">
+      <!-- TAB 1: TRACK (HOME) -->
+      <section id="view-track" class="space-y-4">
+        <!-- Daily Logging Card: Pending vs Completed -->
+        <div id="today-action-card" class="rounded-2xl p-4 transition-all duration-300">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Primary Active Streak Card -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs relative overflow-hidden">
+          <!-- Background decorative tint -->
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-brand-500/10 dark:bg-brand-400/5 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Current Sugar-Free Streak</span>
+              <div class="flex items-baseline space-x-2 mt-1">
+                <span id="streak-counter-value" class="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">0</span>
+                <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">consecutive days</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+              <i data-lucide="flame" class="w-6 h-6 fill-white"></i>
+            </div>
+          </div>
+
+          <!-- Longest Record & Next Milestone Preview -->
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-3 text-xs">
+            <div class="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl">
+              <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Personal Best</p>
+                <p class="font-bold text-slate-800 dark:text-slate-200 truncate"><span id="longest-streak-value">0</span> Days</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" id="card-next-milestone-link">
+              <div class="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                <i data-lucide="award" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Next Milestone</p>
+                <p id="next-milestone-text" class="font-bold text-slate-800 dark:text-slate-200 truncate">3 Days (⚡)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Milestone Progress Bar -->
+          <div class="mt-3">
+            <div class="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+              <span id="milestone-progress-label">Progress to next badge</span>
+              <span id="milestone-progress-pct" class="font-semibold text-brand-600 dark:text-brand-400">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div id="milestone-progress-bar" class="bg-gradient-to-r from-brand-500 to-brand-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supportive Feedback / Insight Callout -->
+        <div id="supportive-message-card" class="hidden rounded-2xl p-4 text-xs">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Health & Impact Overview -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center justify-between">
+            <span>Vitality Insights</span>
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-500"></i>
+          </h2>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <span id="stat-total-clean-days" class="text-lg font-extrabold text-brand-600 dark:text-brand-400">0</span>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Clean Days</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <span id="stat-sugar-avoided-g" class="text-lg font-extrabold text-slate-900 dark:text-white">0g</span>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Sugar Avoided</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <span id="stat-sugar-cubes" class="text-lg font-extrabold text-amber-500">0</span>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Cubes Saved</p>
+            </div>
+          </div>
+
+          <!-- Quick Tip for the day -->
+          <div class="mt-3 p-3 rounded-xl bg-brand-50/60 dark:bg-brand-950/40 border border-brand-200/60 dark:border-brand-900/60 flex items-start space-x-2.5 text-xs text-brand-900 dark:text-brand-200">
+            <i data-lucide="lightbulb" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5"></i>
+            <p id="daily-sugar-tip" class="leading-relaxed text-[11px]">
+              Drinking a tall glass of cool water during a craving decreases cortisol and helps recalibrate dopamine receptors within 10 minutes.
+            </p>
+          </div>
+        </div>
+
+        <!-- Recent Logs Teaser -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Recent 7-Day Activity</h2>
+            <button id="btn-view-all-history" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">View Calendar &rarr;</button>
+          </div>
+          <div id="recent-days-mini-strip" class="grid grid-cols-7 gap-1.5 text-center">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: HISTORY & INSIGHTS -->
+      <section id="view-history" class="space-y-4 hidden">
+        <!-- Calendar Header -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white" id="calendar-month-year">September 2026</h2>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Green = Zero Sugar | Coral = Sugar Logged</p>
+            </div>
+            <div class="flex items-center space-x-1">
+              <button id="btn-prev-month" aria-label="Previous Month" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-next-month" aria-label="Next Month" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekday Labels -->
+          <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1">
+            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div id="calendar-days-grid" class="grid grid-cols-7 gap-1">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Calendar Legend -->
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-around text-[10px] text-slate-500 dark:text-slate-400">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-brand-500 inline-block"></span> 0g Sugar</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Sugar Had</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 inline-block"></span> Unlogged</span>
+          </div>
+        </div>
+
+        <!-- Selected Date Inspector / Action -->
+        <div id="selected-date-inspector" class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Complete Chronological History List -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">All Logged Records</h2>
+            <span id="history-total-count" class="text-xs text-slate-400">0 logs</span>
+          </div>
+          <div id="history-log-list" class="space-y-2">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: BADGES & MILESTONES -->
+      <section id="view-badges" class="space-y-4 hidden">
+        <!-- Milestone Header -->
+        <div class="rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 text-white p-5 shadow-sm">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0">
+              <i data-lucide="medal" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold">Sugar Freedom Milestones</h2>
+              <p class="text-xs text-white/80 mt-0.5">Consecutive clean days unlock neurological and physical adaptations.</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs">
+            <span>Unlocked Badges:</span>
+            <span id="badges-unlocked-summary" class="font-extrabold text-sm">0 / 6</span>
+          </div>
+        </div>
+
+        <!-- Badges Grid -->
+        <div id="badges-container" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS & DATA -->
+      <section id="view-settings" class="space-y-4 hidden">
+        <!-- App Preferences -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 space-y-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Preferences</h2>
+          
+          <!-- Theme Setting -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                <i data-lucide="moon" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-900 dark:text-white">Appearance</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Toggle light / dark mode</p>
+              </div>
+            </div>
+            <button id="btn-toggle-theme" class="px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              <span id="current-theme-label">System</span>
+            </button>
+          </div>
+
+          <!-- Unit Setting -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                <i data-lucide="scale" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-900 dark:text-white">Sugar Unit</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Display in grams (g) or teaspoons (tsp)</p>
+              </div>
+            </div>
+            <div class="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-xs font-medium">
+              <button id="unit-btn-g" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs">g</button>
+              <button id="unit-btn-tsp" class="px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400">tsp</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Backup & Portability -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 space-y-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Data & Backup</h2>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            All your data is stored securely in your browser’s local storage. Export a JSON backup to keep your records safe or transfer between devices.
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="btn-export-json" class="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors">
+              <i data-lucide="download" class="w-4 h-4 text-brand-600"></i>
+              <span>Export JSON</span>
+            </button>
+
+            <label for="input-import-json" class="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4 text-brand-600"></i>
+              <span>Import JSON</span>
+            </label>
+            <input type="file" id="input-import-json" accept=".json,application/json" class="hidden" />
+          </div>
+        </div>
+
+        <!-- PWA / Home Screen Install Guide -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 space-y-2">
+          <div class="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white">
+            <i data-lucide="smartphone" class="w-4 h-4 text-brand-500"></i>
+            <span>Install on iOS / Mobile</span>
+          </div>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Tap the <strong>Share</strong> button <i data-lucide="share" class="w-3 h-3 inline-block"></i> in Safari, then select <strong>"Add to Home Screen"</strong> for a native standalone app experience.
+          </p>
+        </div>
+
+        <!-- Educational Sugar Facts & WHO Guidelines -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Guidelines & Context</h2>
+          <div class="space-y-2 text-[11px] leading-relaxed">
+            <p><strong>WHO Guideline:</strong> Free added sugar should be less than 25g/day (~6 teaspoons) for maximum health protection.</p>
+            <p><strong>1 Sugar Cube:</strong> Approximately 4g of sugar = 1 standard teaspoon.</p>
+            <p><strong>Common Soda:</strong> Contains ~39g of added sugar (~10 sugar cubes) in one 12oz can.</p>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="rounded-2xl bg-red-50/50 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/60 p-4 space-y-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Danger Zone</h2>
+          <p class="text-[11px] text-red-700/80 dark:text-red-300/80">
+            Permanently clear all logs, streak records, and unlocked badges from this browser.
+          </p>
+          <button id="btn-reset-data" class="w-full py-2 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors">
+            Reset All Application Data
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Fixed Bottom Navigation Bar (iOS safe-area aware) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-slate-800/80 safe-bottom-nav">
+      <div class="max-w-md mx-auto grid grid-cols-4 px-2 py-1.5">
+        <button id="nav-btn-track" data-tab="track" class="nav-tab-btn flex flex-col items-center justify-center py-1 text-brand-600 dark:text-brand-400">
+          <i data-lucide="flame" class="w-5 h-5 transition-transform active:scale-90"></i>
+          <span class="text-[10px] font-semibold mt-1">Track</span>
+        </button>
+
+        <button id="nav-btn-history" data-tab="history" class="nav-tab-btn flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 hover:text-slate-600">
+          <i data-lucide="calendar" class="w-5 h-5 transition-transform active:scale-90"></i>
+          <span class="text-[10px] font-semibold mt-1">History</span>
+        </button>
+
+        <button id="nav-btn-badges" data-tab="badges" class="nav-tab-btn flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 hover:text-slate-600">
+          <i data-lucide="award" class="w-5 h-5 transition-transform active:scale-90"></i>
+          <span class="text-[10px] font-semibold mt-1">Badges</span>
+        </button>
+
+        <button id="nav-btn-settings" data-tab="settings" class="nav-tab-btn flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 hover:text-slate-600">
+          <i data-lucide="sliders" class="w-5 h-5 transition-transform active:scale-90"></i>
+          <span class="text-[10px] font-semibold mt-1">Settings</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MODAL: LOG SUGAR MODAL -->
+    <div id="modal-log-sugar" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+      <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-log-title">Log Sugar Intake</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400" id="modal-log-subtitle">Honesty is how habits are built. No judgment!</p>
+          </div>
+          <button id="btn-close-log-modal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Form fields -->
+        <form id="form-log-sugar" class="space-y-4">
+          <input type="hidden" id="input-log-date" />
+
+          <!-- Zero Sugar vs Had Sugar Toggle -->
+          <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            <button type="button" id="modal-toggle-zero" class="py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400">
+              🌿 Zero Sugar (0g)
+            </button>
+            <button type="button" id="modal-toggle-had" class="py-2 text-xs font-bold rounded-lg transition-all bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs">
+              🧁 Had Added Sugar
+            </button>
+          </div>
+
+          <!-- Fields shown when sugar had -->
+          <div id="sugar-details-container" class="space-y-3">
+            <!-- Quick Chips for Common Items -->
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Quick Select</label>
+              <div class="flex flex-wrap gap-1.5" id="quick-items-chips">
+                <button type="button" data-name="Soda / Soft Drink" data-grams="39" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Soda (39g)</button>
+                <button type="button" data-name="Sweet Coffee / Tea" data-grams="26" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Sweet Coffee (26g)</button>
+                <button type="button" data-name="Chocolate / Candy" data-grams="24" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Chocolate (24g)</button>
+                <button type="button" data-name="Pastry / Cake" data-grams="22" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Pastry (22g)</button>
+                <button type="button" data-name="Ice Cream" data-grams="28" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Ice Cream (28g)</button>
+                <button type="button" data-name="Condiment / Dressing" data-grams="8" class="quick-chip text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-brand-500 text-slate-700 dark:text-slate-300">Sauce (8g)</button>
+              </div>
+            </div>
+
+            <!-- Item Name -->
+            <div>
+              <label for="input-item-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Item Name</label>
+              <input type="text" id="input-item-name" placeholder="e.g. Can of Cola, Chocolate donut" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Quantity with Unit Toggle -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="input-sugar-quantity" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Estimated Sugar Amount</label>
+                <div class="flex items-center space-x-1 text-[11px] text-slate-500">
+                  <span id="quantity-unit-helper">~ 1 tsp = 4g sugar</span>
+                </div>
+              </div>
+              <div class="flex space-x-2">
+                <input type="number" id="input-sugar-quantity" step="0.5" min="0" placeholder="e.g. 24" class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <span id="modal-unit-badge" class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center">g</span>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label for="input-sugar-notes" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Optional Notes</label>
+              <textarea id="input-sugar-notes" rows="2" placeholder="e.g. Team celebration at work, craving hit at 3pm" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Zero sugar note -->
+          <div id="zero-sugar-confirm-note" class="hidden p-3 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 text-xs text-brand-800 dark:text-brand-300 flex items-center space-x-2">
+            <i data-lucide="check-circle" class="w-4 h-4 text-brand-500 shrink-0"></i>
+            <span>This marks 0g added sugar for this date and maintains or starts your streak!</span>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="flex space-x-2 pt-2">
+            <button type="button" id="btn-cancel-modal" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Cancel
+            </button>
+            <button type="submit" id="btn-save-log" class="flex-1 py-2.5 px-4 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-500/20 transition-all">
+              Save Entry
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRM DELETE -->
+    <div id="modal-confirm-delete" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Delete Entry?</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400" id="confirm-delete-text">
+          Are you sure you want to remove the log for this date? Your streak will automatically recalculate.
+        </p>
+        <div class="flex space-x-2 pt-2">
+          <button id="btn-cancel-delete" class="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+            Cancel
+          </button>
+          <button id="btn-execute-delete" class="flex-1 py-2 text-xs font-bold rounded-xl bg-red-600 text-white hover:bg-red-700">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="app-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-xs w-full px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center space-x-2 pointer-events-none opacity-0 transition-all duration-300">
+      <i data-lucide="check" class="w-4 h-4 text-brand-400 shrink-0" id="toast-icon"></i>
+      <span id="toast-msg" class="truncate">Action completed</span>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC (Vanilla JS with Zero External Build Dependencies) -->
+  <script>
+    // --- APP STATE & STORAGE CONTROLLER ---
+    const STORAGE_KEYS = {
+      LOGS: 'sugar_cut_logs_v1',
+      SETTINGS: 'sugar_cut_settings_v1',
+      LONGEST_STREAK: 'sugar_cut_longest_streak_v1',
+      UNLOCKED_BADGES: 'sugar_cut_unlocked_badges_v1'
+    };
+
+    // Milestone definitions as specified
+    const MILESTONES = [
+      {
+        days: 3,
+        id: 'streak_3',
+        title: 'Spark of Will',
+        icon: 'zap',
+        badge: '⚡',
+        desc: 'Conquered the initial 72-hour craving withdrawal surge.',
+        benefit: 'Blood glucose spikes normalize; physical cravings begin to subside.'
+      },
+      {
+        days: 7,
+        id: 'streak_7',
+        title: 'Sweet Freedom',
+        icon: 'sprout',
+        badge: '🌿',
+        desc: 'One full week clean! Taste receptors begin regenerating.',
+        benefit: 'Skin clarifies, systemic inflammation cools, morning grogginess fades.'
+      },
+      {
+        days: 14,
+        id: 'streak_14',
+        title: 'Taste Reset',
+        icon: 'apple',
+        badge: '🍓',
+        desc: 'Taste buds recalibrated. Real fruit tastes rich and dessert-sweet.',
+        benefit: 'Insulin sensitivity drastically increases, reducing visceral fat retention.'
+      },
+      {
+        days: 30,
+        id: 'streak_30',
+        title: 'Dopamine Master',
+        icon: 'brain',
+        badge: '🧠',
+        desc: 'One full month habit anchored. Dopamine receptor density restored.',
+        benefit: 'No afternoon energy crashes; mental focus and mood stability soar.'
+      },
+      {
+        days: 60,
+        id: 'streak_60',
+        title: 'Energy Alchemist',
+        icon: 'sparkles',
+        badge: '✨',
+        desc: 'Metabolic flexibility unlocked. Consistent, sustained daily drive.',
+        benefit: 'Cardiovascular markers improve; triglycerides drop significantly.'
+      },
+      {
+        days: 90,
+        id: 'streak_90',
+        title: 'Sugar Free Legend',
+        icon: 'crown',
+        badge: '👑',
+        desc: 'Complete lifestyle transformation. Sugar has lost its power over you.',
+        benefit: 'Epigenetic vitality, optimal metabolic resilience, and lifelong control.'
+      }
+    ];
+
+    const SUGAR_TIPS = [
+      "Drinking a tall glass of cool water during a craving decreases cortisol and calms dopamine triggers within 10 minutes.",
+      "Most afternoon slumps are blood sugar crashes from lunch carbs or hidden added sugar, not true fatigue.",
+      "Whole berries, crisp green apples, and cinnamon naturally satisfy sweet cravings without spiking insulin.",
+      "Added sugar is disguised under 60+ names: dextrose, barley malt, cane juice, maltodextrin, high-fructose syrup.",
+      "After 7 to 10 days with zero sugar, your tongue regrows taste bud papillae, making real food taste remarkably sweet."
+    ];
+
+    class SugarCutApp {
+      constructor() {
+        this.currentTab = 'track';
+        this.calendarDate = new Date();
+        this.selectedDateStr = this.getTodayDateString();
+        this.editingDateStr = null;
+        this.pendingDeleteDateStr = null;
+
+        this.initSettings();
+        this.initIconsAndPWA();
+        this.attachEventListeners();
+        this.renderAll();
+      }
+
+      // --- DATE HELPERS ---
+      getTodayDateString() {
+        const d = new Date();
+        return this.formatDateISO(d);
+      }
+
+      formatDateISO(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      parseDateISO(str) {
+        const [year, month, day] = str.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      formatDisplayDate(str) {
+        const todayStr = this.getTodayDateString();
+        if (str === todayStr) return 'Today';
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (str === this.formatDateISO(yesterday)) return 'Yesterday';
+
+        const d = this.parseDateISO(str);
+        return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      }
+
+      // --- DATA STORE ---
+      getLogs() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEYS.LOGS);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      saveLogs(logs) {
+        localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs));
+        this.calculateStreaksAndBadges();
+      }
+
+      getSettings() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          return raw ? JSON.parse(raw) : { theme: 'system', unit: 'g' };
+        } catch (e) {
+          return { theme: 'system', unit: 'g' };
+        }
+      }
+
+      saveSettings(settings) {
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        this.applySettings();
+      }
+
+      getLongestStreak() {
+        return parseInt(localStorage.getItem(STORAGE_KEYS.LONGEST_STREAK) || '0', 10);
+      }
+
+      setLongestStreak(val) {
+        localStorage.setItem(STORAGE_KEYS.LONGEST_STREAK, String(val));
+      }
+
+      getUnlockedBadges() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEYS.UNLOCKED_BADGES);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      setUnlockedBadge(id, dateStr) {
+        const badges = this.getUnlockedBadges();
+        if (!badges[id]) {
+          badges[id] = { unlockedAt: dateStr, timestamp: Date.now() };
+          localStorage.setItem(STORAGE_KEYS.UNLOCKED_BADGES, JSON.stringify(badges));
+          return true; // Newly unlocked!
+        }
+        return false;
+      }
+
+      // --- STREAK LOGIC ---
+      calculateStreaksAndBadges() {
+        const logs = this.getLogs();
+        const todayStr = this.getTodayDateString();
+
+        // Calculate active streak
+        // A streak requires consecutive days with 0g sugar.
+        // Today can be logged as 0g (counts) or pending (streak checks starting from yesterday).
+        // If today has sugar > 0g, active streak is 0!
+        let streak = 0;
+        const todayLog = logs[todayStr];
+
+        if (todayLog && todayLog.sugarGrams > 0) {
+          // Reset streak to 0 if today has sugar
+          streak = 0;
+        } else {
+          // Check consecutive backwards
+          let checkDate = new Date();
+          let firstDayCheck = true;
+
+          while (true) {
+            const dateStr = this.formatDateISO(checkDate);
+            const entry = logs[dateStr];
+
+            if (firstDayCheck) {
+              firstDayCheck = false;
+              if (entry) {
+                if (entry.sugarGrams === 0) {
+                  streak++;
+                } else {
+                  break;
+                }
+              }
+              // If today has NO entry yet, it's pending; we don't break the streak, we just check yesterday
+            } else {
+              if (entry && entry.sugarGrams === 0) {
+                streak++;
+              } else {
+                // Either no log or sugar > 0 -> streak ends here
+                break;
+              }
+            }
+
+            // Move to previous day
+            checkDate.setDate(checkDate.getDate() - 1);
+
+            // Safety limit (e.g. 5 years)
+            if (streak > 2000) break;
+          }
+        }
+
+        // Longest streak
+        let currentLongest = this.getLongestStreak();
+        if (streak > currentLongest) {
+          this.setLongestStreak(streak);
+          currentLongest = streak;
+        }
+
+        // Check milestones
+        let newlyUnlockedMilestone = null;
+        MILESTONES.forEach(m => {
+          if (streak >= m.days || currentLongest >= m.days) {
+            const isNew = this.setUnlockedBadge(m.id, todayStr);
+            if (isNew) {
+              newlyUnlockedMilestone = m;
+            }
+          }
+        });
+
+        if (newlyUnlockedMilestone) {
+          this.triggerConfetti();
+          this.showToast(`🎉 Milestone Unlocked: ${newlyUnlockedMilestone.title}!`);
+        }
+
+        return { currentStreak: streak, longestStreak: currentLongest };
+      }
+
+      // --- INITIALIZE SETTINGS & PWA ---
+      initSettings() {
+        const settings = this.getSettings();
+        this.applySettings();
+      }
+
+      applySettings() {
+        const settings = this.getSettings();
+        
+        // Theme
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let isDark = false;
+        if (settings.theme === 'dark') isDark = true;
+        else if (settings.theme === 'light') isDark = false;
+        else isDark = prefersDark;
+
+        document.documentElement.classList.toggle('dark', isDark);
+        
+        const themeLabel = document.getElementById('current-theme-label');
+        if (themeLabel) {
+          themeLabel.textContent = settings.theme.charAt(0).toUpperCase() + settings.theme.slice(1);
+        }
+
+        // Meta theme-color
+        const metaTheme = document.getElementById('meta-theme-color');
+        if (metaTheme) {
+          metaTheme.content = isDark ? '#020617' : '#10b981';
+        }
+
+        // Unit buttons
+        const unitG = document.getElementById('unit-btn-g');
+        const unitTsp = document.getElementById('unit-btn-tsp');
+        if (unitG && unitTsp) {
+          if (settings.unit === 'tsp') {
+            unitTsp.className = 'px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs font-bold';
+            unitG.className = 'px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400';
+          } else {
+            unitG.className = 'px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs font-bold';
+            unitTsp.className = 'px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400';
+          }
+        }
+      }
+
+      initIconsAndPWA() {
+        // Generate SVG icon and dynamic apple touch icon PNG via Canvas
+        const svgIcon = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <defs>
+              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#047857"/>
+              </linearGradient>
+            </defs>
+            <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+            <!-- Sugar Cube Silhouette -->
+            <path d="M256 120 L380 185 L256 250 L132 185 Z" fill="#ffffff" opacity="0.9"/>
+            <path d="M132 185 L256 250 L256 380 L132 315 Z" fill="#e2e8f0" opacity="0.95"/>
+            <path d="M380 185 L256 250 L256 380 L380 315 Z" fill="#cbd5e1" opacity="0.9"/>
+            <!-- Green Shield with 0g -->
+            <circle cx="256" cy="275" r="90" fill="#064e3b" stroke="#34d399" stroke-width="12"/>
+            <text x="256" y="295" font-family="-apple-system, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">0g</text>
+          </svg>
+        `.trim();
+
+        const svgDataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgIcon);
+        
+        // Favicon
+        const faviconLink = document.getElementById('app-favicon');
+        if (faviconLink) faviconLink.href = svgDataUrl;
+
+        // Generate high-res 180x180 PNG data URL for iOS Apple Touch Icon
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 180;
+          canvas.height = 180;
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, 180, 180);
+            const pngDataUrl = canvas.toDataURL('image/png');
+            const appleIcon = document.getElementById('app-apple-touch-icon');
+            if (appleIcon) appleIcon.href = pngDataUrl;
+          };
+          img.src = svgDataUrl;
+        } catch (e) {}
+
+        // Web App Manifest
+        const manifestObj = {
+          name: "Sugar Cut — Daily Streak Tracker",
+          short_name: "SugarCut",
+          description: "Daily sugar-free habit and streak tracker with gamified milestones.",
+          start_url: "./",
+          display: "standalone",
+          background_color: "#0f172a",
+          theme_color: "#10b981",
+          icons: [
+            {
+              src: svgDataUrl,
+              sizes: "192x192 512x512",
+              type: "image/svg+xml",
+              purpose: "any maskable"
+            }
+          ]
+        };
+        const manifestLink = document.getElementById('app-manifest');
+        if (manifestLink) {
+          manifestLink.href = 'data:application/manifest+json;utf8,' + encodeURIComponent(JSON.stringify(manifestObj));
+        }
+
+        // Lightweight Inline Service Worker Registration for PWA criteria
+        if ('serviceWorker' in navigator) {
+          try {
+            const swBlob = new Blob([
+              `self.addEventListener('install', e => self.skipWaiting());\n` +
+              `self.addEventListener('activate', e => clients.claim());\n` +
+              `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`
+            ], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+          } catch (e) {}
+        }
+      }
+
+      // --- RENDERING VIEWS ---
+      renderAll() {
+        this.renderHeader();
+        this.renderTrackView();
+        this.renderHistoryView();
+        this.renderBadgesView();
+        this.renderSettingsView();
+        this.refreshLucideIcons();
+      }
+
+      refreshLucideIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+
+      renderHeader() {
+        const today = new Date();
+        const headerDate = document.getElementById('header-date-display');
+        if (headerDate) {
+          headerDate.textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        const { currentStreak } = this.calculateStreaksAndBadges();
+        const streakCountEl = document.getElementById('header-streak-count');
+        if (streakCountEl) {
+          streakCountEl.textContent = currentStreak;
+        }
+      }
+
+      renderTrackView() {
+        const logs = this.getLogs();
+        const todayStr = this.getTodayDateString();
+        const todayEntry = logs[todayStr];
+        const { currentStreak, longestStreak } = this.calculateStreaksAndBadges();
+        const settings = this.getSettings();
+
+        // 1. Primary Streak Counter
+        const streakValEl = document.getElementById('streak-counter-value');
+        if (streakValEl) streakValEl.textContent = currentStreak;
+
+        const longestValEl = document.getElementById('longest-streak-value');
+        if (longestValEl) longestValEl.textContent = longestStreak;
+
+        // Next Milestone calculation
+        const nextMilestone = MILESTONES.find(m => m.days > currentStreak);
+        const nextMilestoneText = document.getElementById('next-milestone-text');
+        const milestoneProgressLabel = document.getElementById('milestone-progress-label');
+        const milestoneProgressPct = document.getElementById('milestone-progress-pct');
+        const milestoneProgressBar = document.getElementById('milestone-progress-bar');
+
+        if (nextMilestone) {
+          const prevDays = MILESTONES.filter(m => m.days < nextMilestone.days).map(m => m.days).pop() || 0;
+          const range = nextMilestone.days - prevDays;
+          const progress = Math.max(0, currentStreak - prevDays);
+          const pct = Math.min(100, Math.round((progress / range) * 100));
+
+          if (nextMilestoneText) nextMilestoneText.textContent = `${nextMilestone.days} Days (${nextMilestone.badge})`;
+          if (milestoneProgressLabel) milestoneProgressLabel.textContent = `${currentStreak} / ${nextMilestone.days} days to ${nextMilestone.title}`;
+          if (milestoneProgressPct) milestoneProgressPct.textContent = `${pct}%`;
+          if (milestoneProgressBar) milestoneProgressBar.style.width = `${pct}%`;
+        } else {
+          if (nextMilestoneText) nextMilestoneText.textContent = `All Milestones Beat! 👑`;
+          if (milestoneProgressLabel) milestoneProgressLabel.textContent = `You're a Sugar Free Legend`;
+          if (milestoneProgressPct) milestoneProgressPct.textContent = `100%`;
+          if (milestoneProgressBar) milestoneProgressBar.style.width = `100%`;
+        }
+
+        // 2. Today's Action Card (Pending vs Zero vs Had Sugar)
+        const actionCard = document.getElementById('today-action-card');
+        const supportiveCard = document.getElementById('supportive-message-card');
+
+        if (!todayEntry) {
+          // PENDING TODAY
+          actionCard.className = 'rounded-2xl p-5 border-2 border-brand-400/80 dark:border-brand-500/60 bg-gradient-to-br from-brand-50/80 to-white dark:from-brand-950/40 dark:to-slate-900 shadow-sm relative overflow-hidden pulse-gentle';
+          actionCard.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block"></span>
+                Today's Log Pending
+              </span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Keep streak active!</span>
+            </div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white leading-snug">
+              How did you do with added sugar today?
+            </h2>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 mb-4 leading-relaxed">
+              Log zero sugar to extend your streak, or enter any treats enjoyed.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button id="btn-quick-zero-today" class="py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-bold text-xs shadow-md shadow-brand-500/25 flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>Zero Sugar Today! 🌿</span>
+              </button>
+              <button id="btn-open-sugar-modal-today" class="py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-2 transition-colors">
+                <i data-lucide="cup-soda" class="w-4 h-4 text-amber-500"></i>
+                <span>I Had Some Sugar</span>
+              </button>
+            </div>
+          `;
+
+          if (supportiveCard) {
+            supportiveCard.className = 'hidden';
+          }
+        } else if (todayEntry.sugarGrams === 0) {
+          // ZERO SUGAR COMPLETED
+          actionCard.className = 'rounded-2xl p-5 border border-brand-300 dark:border-brand-700/80 bg-brand-50/80 dark:bg-brand-950/30 shadow-xs';
+          actionCard.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div class="flex items-start space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-brand-500/30">
+                  <i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-brand-700 dark:text-brand-300 uppercase tracking-wider">Today's Goal Achieved!</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-200 dark:bg-brand-900 text-brand-800 dark:text-brand-200 font-semibold">0g Added Sugar</span>
+                  </div>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    Your body is healing & insulin is resting.
+                  </p>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    Logged at ${new Date(todayEntry.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.
+                  </p>
+                </div>
+              </div>
+              <button id="btn-edit-today-log" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit Today's Log">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+            </div>
+          `;
+
+          if (supportiveCard) {
+            supportiveCard.className = 'hidden';
+          }
+        } else {
+          // SUGAR LOGGED TODAY (Reset streak with supportive, encouraging message!)
+          const unitLabel = settings.unit === 'tsp' ? 'tsp' : 'g';
+          const displayedAmount = settings.unit === 'tsp' ? (todayEntry.sugarGrams / 4).toFixed(1) : todayEntry.sugarGrams;
+
+          actionCard.className = 'rounded-2xl p-5 border border-amber-300 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 shadow-xs';
+          actionCard.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div class="flex items-start space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
+                  <i data-lucide="info" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Sugar Logged Today</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-semibold">${displayedAmount} ${unitLabel}</span>
+                  </div>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    ${todayEntry.items || 'Sugar Treat'}
+                  </p>
+                  ${todayEntry.notes ? `<p class="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">"${todayEntry.notes}"</p>` : ''}
+                </div>
+              </div>
+              <button id="btn-edit-today-log" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit Today's Log">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+            </div>
+          `;
+
+          // Supportive Encouragement Message (Mandated by requirement)
+          if (supportiveCard) {
+            supportiveCard.className = 'rounded-2xl p-4 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-start space-x-3 text-xs leading-relaxed';
+            supportiveCard.innerHTML = `
+              <div class="w-6 h-6 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
+              </div>
+              <div>
+                <strong class="text-slate-900 dark:text-white font-semibold">Streak reset, but not your progress!</strong>
+                <p class="mt-0.5 text-slate-600 dark:text-slate-400">
+                  Every clean day you logged permanently improved your metabolic foundation. What matters is the next choice. Tomorrow is Day 1 of your best streak yet!
+                </p>
+              </div>
+            `;
+          }
+        }
+
+        // 3. Health & Impact Overview Stats
+        const allEntries = Object.values(logs);
+        const cleanDays = allEntries.filter(e => e.sugarGrams === 0).length;
+        // Estimate: average person consumes ~50g added sugar/day; clean day saves ~50g
+        const estimatedSugarAvoidedGrams = cleanDays * 50;
+        const estimatedCubesSaved = Math.round(estimatedSugarAvoidedGrams / 4);
+
+        const cleanDaysEl = document.getElementById('stat-total-clean-days');
+        if (cleanDaysEl) cleanDaysEl.textContent = cleanDays;
+
+        const avoidedEl = document.getElementById('stat-sugar-avoided-g');
+        if (avoidedEl) {
+          if (settings.unit === 'tsp') {
+            avoidedEl.textContent = `${(estimatedSugarAvoidedGrams / 4).toLocaleString()} tsp`;
+          } else {
+            avoidedEl.textContent = estimatedSugarAvoidedGrams >= 1000 
+              ? `${(estimatedSugarAvoidedGrams / 1000).toFixed(1)}kg` 
+              : `${estimatedSugarAvoidedGrams}g`;
+          }
+        }
+
+        const cubesEl = document.getElementById('stat-sugar-cubes');
+        if (cubesEl) cubesEl.textContent = estimatedCubesSaved.toLocaleString();
+
+        // Random or rotating tip
+        const tipEl = document.getElementById('daily-sugar-tip');
+        if (tipEl) {
+          const dayIndex = new Date().getDate() % SUGAR_TIPS.length;
+          tipEl.textContent = SUGAR_TIPS[dayIndex];
+        }
+
+        // 4. Recent 7-Day Mini Strip
+        const miniStrip = document.getElementById('recent-days-mini-strip');
+        if (miniStrip) {
+          let html = '';
+          const today = new Date();
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const dStr = this.formatDateISO(d);
+            const entry = logs[dStr];
+            const isToday = i === 0;
+            const dayLetter = d.toLocaleDateString(undefined, { weekday: 'narrow' });
+            const dayNumber = d.getDate();
+
+            let statusBg = 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500';
+            let statusIcon = '';
+
+            if (entry) {
+              if (entry.sugarGrams === 0) {
+                statusBg = 'bg-brand-500 text-white shadow-xs shadow-brand-500/30';
+                statusIcon = '✓';
+              } else {
+                statusBg = 'bg-amber-500 text-white';
+                statusIcon = '!';
+              }
+            } else if (isToday) {
+              statusBg = 'border-2 border-brand-400 text-brand-600 dark:text-brand-400 bg-brand-50/50 dark:bg-brand-950/20';
+              statusIcon = '?';
+            }
+
+            html += `
+              <div class="flex flex-col items-center cursor-pointer" onclick="app.inspectDate('${dStr}')">
+                <span class="text-[10px] font-semibold text-slate-400 mb-1">${dayLetter}</span>
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${statusBg} transition-transform active:scale-90">
+                  ${statusIcon || dayNumber}
+                </div>
+                <span class="text-[9px] text-slate-400 mt-1">${dayNumber}</span>
+              </div>
+            `;
+          }
+          miniStrip.innerHTML = html;
+        }
+
+        // Attach dynamic button listeners inside track view
+        const quickZeroBtn = document.getElementById('btn-quick-zero-today');
+        if (quickZeroBtn) {
+          quickZeroBtn.onclick = () => this.logZeroSugar(todayStr);
+        }
+
+        const hadSugarBtn = document.getElementById('btn-open-sugar-modal-today');
+        if (hadSugarBtn) {
+          hadSugarBtn.onclick = () => this.openLogModal(todayStr, false);
+        }
+
+        const editTodayBtn = document.getElementById('btn-edit-today-log');
+        if (editTodayBtn) {
+          editTodayBtn.onclick = () => this.openLogModal(todayStr, true);
+        }
+
+        const nextMilestoneLink = document.getElementById('card-next-milestone-link');
+        if (nextMilestoneLink) {
+          nextMilestoneLink.onclick = () => this.switchTab('badges');
+        }
+
+        const viewAllHistoryBtn = document.getElementById('btn-view-all-history');
+        if (viewAllHistoryBtn) {
+          viewAllHistoryBtn.onclick = () => this.switchTab('history');
+        }
+      }
+
+      renderHistoryView() {
+        const logs = this.getLogs();
+        const settings = this.getSettings();
+
+        // Month & Year header
+        const year = this.calendarDate.getFullYear();
+        const month = this.calendarDate.getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        const monthYearEl = document.getElementById('calendar-month-year');
+        if (monthYearEl) {
+          monthYearEl.textContent = `${monthNames[month]} ${year}`;
+        }
+
+        // Days grid calculation
+        const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 is Sunday
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const todayStr = this.getTodayDateString();
+
+        const gridEl = document.getElementById('calendar-days-grid');
+        if (gridEl) {
+          let gridHtml = '';
+
+          // Blank padding cells for leading days
+          for (let i = 0; i < firstDayOfMonth; i++) {
+            gridHtml += `<div class="h-9"></div>`;
+          }
+
+          // Days of current month
+          for (let day = 1; day <= daysInMonth; day++) {
+            const d = new Date(year, month, day);
+            const dateStr = this.formatDateISO(d);
+            const entry = logs[dateStr];
+            const isToday = dateStr === todayStr;
+            const isSelected = dateStr === this.selectedDateStr;
+
+            let badgeClass = 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800';
+            let dotHtml = '';
+
+            if (entry) {
+              if (entry.sugarGrams === 0) {
+                badgeClass = 'bg-brand-100 text-brand-900 dark:bg-brand-950/80 dark:text-brand-200 font-bold';
+                dotHtml = `<span class="w-1.5 h-1.5 rounded-full bg-brand-500 absolute bottom-1"></span>`;
+              } else {
+                badgeClass = 'bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-200 font-bold';
+                dotHtml = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 absolute bottom-1"></span>`;
+              }
+            }
+
+            if (isToday) {
+              badgeClass += ' ring-2 ring-brand-500 font-extrabold';
+            }
+
+            if (isSelected) {
+              badgeClass += ' outline outline-2 outline-slate-800 dark:outline-white';
+            }
+
+            gridHtml += `
+              <button onclick="app.inspectDate('${dateStr}')" class="h-9 relative rounded-xl flex flex-col items-center justify-center text-xs transition-transform active:scale-95 ${badgeClass}">
+                <span>${day}</span>
+                ${dotHtml}
+              </button>
+            `;
+          }
+
+          gridEl.innerHTML = gridHtml;
+        }
+
+        // Selected Date Inspector
+        this.renderSelectedDateInspector();
+
+        // Full history logs list
+        const logListEl = document.getElementById('history-log-list');
+        const countEl = document.getElementById('history-total-count');
+        const sortedDates = Object.keys(logs).sort((a, b) => b.localeCompare(a));
+
+        if (countEl) countEl.textContent = `${sortedDates.length} recorded`;
+
+        if (logListEl) {
+          if (sortedDates.length === 0) {
+            logListEl.innerHTML = `
+              <div class="py-8 text-center text-slate-400 text-xs">
+                <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                <p>No days logged yet. Log today on the Track tab!</p>
+              </div>
+            `;
+          } else {
+            const unitLabel = settings.unit === 'tsp' ? 'tsp' : 'g';
+            let listHtml = '';
+            sortedDates.forEach(dateStr => {
+              const item = logs[dateStr];
+              const isZero = item.sugarGrams === 0;
+              const displayQty = settings.unit === 'tsp' ? (item.sugarGrams / 4).toFixed(1) : item.sugarGrams;
+
+              listHtml += `
+                <div class="p-3 rounded-xl border ${isZero ? 'border-brand-200/80 dark:border-brand-900/60 bg-brand-50/40 dark:bg-brand-950/20' : 'border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20'} flex items-start justify-between text-xs">
+                  <div class="flex items-start space-x-2.5">
+                    <div class="w-7 h-7 rounded-lg ${isZero ? 'bg-brand-500 text-white' : 'bg-amber-500 text-white'} flex items-center justify-center shrink-0 mt-0.5">
+                      <i data-lucide="${isZero ? 'check' : 'alert-circle'}" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <div class="flex items-center space-x-2">
+                        <span class="font-bold text-slate-900 dark:text-white">${this.formatDisplayDate(dateStr)}</span>
+                        <span class="text-[10px] text-slate-400">(${dateStr})</span>
+                      </div>
+                      <p class="font-semibold ${isZero ? 'text-brand-700 dark:text-brand-300' : 'text-amber-700 dark:text-amber-300'} mt-0.5">
+                        ${isZero ? 'Zero Sugar (0g)' : `${displayQty} ${unitLabel} — ${item.items || 'Sugar Treat'}`}
+                      </p>
+                      ${item.notes ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 italic">"${item.notes}"</p>` : ''}
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-1 shrink-0">
+                    <button onclick="app.openLogModal('${dateStr}', true)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800" title="Edit">
+                      <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button onclick="app.promptDeleteDate('${dateStr}')" class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50" title="Delete">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+            logListEl.innerHTML = listHtml;
+          }
+        }
+      }
+
+      inspectDate(dateStr) {
+        this.selectedDateStr = dateStr;
+        this.renderHistoryView();
+        this.refreshLucideIcons();
+      }
+
+      renderSelectedDateInspector() {
+        const inspectorEl = document.getElementById('selected-date-inspector');
+        if (!inspectorEl) return;
+
+        const dateStr = this.selectedDateStr || this.getTodayDateString();
+        const logs = this.getLogs();
+        const entry = logs[dateStr];
+        const settings = this.getSettings();
+        const unitLabel = settings.unit === 'tsp' ? 'tsp' : 'g';
+
+        if (!entry) {
+          inspectorEl.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-bold text-slate-900 dark:text-white">${this.formatDisplayDate(dateStr)} (${dateStr})</p>
+                <p class="text-[11px] text-slate-500">No log recorded for this date.</p>
+              </div>
+              <div class="flex space-x-1.5">
+                <button onclick="app.logZeroSugar('${dateStr}')" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs">
+                  + 0g Sugar
+                </button>
+                <button onclick="app.openLogModal('${dateStr}', false)" class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold">
+                  + Sugar
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          const isZero = entry.sugarGrams === 0;
+          const displayQty = settings.unit === 'tsp' ? (entry.sugarGrams / 4).toFixed(1) : entry.sugarGrams;
+          inspectorEl.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">${this.formatDisplayDate(dateStr)} (${dateStr})</p>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isZero ? 'bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">
+                    ${isZero ? '0g Clean' : `${displayQty} ${unitLabel}`}
+                  </span>
+                </div>
+                ${entry.items ? `<p class="text-xs text-slate-600 dark:text-slate-300 font-medium">${entry.items}</p>` : ''}
+                ${entry.notes ? `<p class="text-[11px] text-slate-400 italic">"${entry.notes}"</p>` : ''}
+              </div>
+              <div class="flex space-x-1">
+                <button onclick="app.openLogModal('${dateStr}', true)" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
+                  Edit
+                </button>
+                <button onclick="app.promptDeleteDate('${dateStr}')" class="px-2.5 py-1.5 rounded-xl text-red-600 border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-medium">
+                  Delete
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      renderBadgesView() {
+        const container = document.getElementById('badges-container');
+        if (!container) return;
+
+        const { currentStreak, longestStreak } = this.calculateStreaksAndBadges();
+        const unlockedBadges = this.getUnlockedBadges();
+        const highestDays = Math.max(currentStreak, longestStreak);
+
+        let unlockedCount = 0;
+        let html = '';
+
+        MILESTONES.forEach(m => {
+          const isUnlocked = Boolean(unlockedBadges[m.id]);
+          if (isUnlocked) unlockedCount++;
+
+          const progress = Math.min(m.days, highestDays);
+          const progressPct = Math.min(100, Math.round((progress / m.days) * 100));
+
+          html += `
+            <div class="rounded-2xl border p-4 transition-all duration-200 ${
+              isUnlocked 
+                ? 'bg-white dark:bg-slate-900 border-brand-300 dark:border-brand-800 shadow-xs' 
+                : 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 opacity-80'
+            }">
+              <div class="flex items-start space-x-3.5">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
+                  isUnlocked 
+                    ? 'bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-md shadow-brand-500/20' 
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                }">
+                  ${m.badge}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      ${m.title}
+                      <span class="text-[11px] font-semibold text-slate-400">(${m.days}d)</span>
+                    </h3>
+                    ${
+                      isUnlocked 
+                        ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950 px-2 py-0.5 rounded-full border border-brand-200 dark:border-brand-900"><i data-lucide="check" class="w-3 h-3"></i> Unlocked</span>` 
+                        : `<span class="text-[10px] font-semibold text-slate-400 flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> ${progress}/${m.days} d</span>`
+                    }
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">${m.desc}</p>
+                  
+                  <!-- Biological Benefit Box -->
+                  <div class="mt-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-[11px] text-slate-500 dark:text-slate-400 flex items-start space-x-2">
+                    <i data-lucide="activity" class="w-3.5 h-3.5 text-brand-500 shrink-0 mt-0.5"></i>
+                    <span>${m.benefit}</span>
+                  </div>
+
+                  <!-- Progress Bar for Locked -->
+                  ${
+                    !isUnlocked 
+                      ? `
+                      <div class="mt-3">
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div class="bg-brand-500 h-1.5 rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>
+                        </div>
+                      </div>
+                      ` 
+                      : ''
+                  }
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+        const summaryEl = document.getElementById('badges-unlocked-summary');
+        if (summaryEl) summaryEl.textContent = `${unlockedCount} / ${MILESTONES.length}`;
+      }
+
+      renderSettingsView() {
+        // Handled directly via settings events and current state
+      }
+
+      // --- LOG ACTIONS ---
+      logZeroSugar(dateStr) {
+        const logs = this.getLogs();
+        logs[dateStr] = {
+          id: `log-${dateStr}`,
+          date: dateStr,
+          isZeroSugar: true,
+          sugarGrams: 0,
+          items: '',
+          notes: '',
+          timestamp: Date.now()
+        };
+
+        this.saveLogs(logs);
+        this.triggerConfetti();
+        this.showToast('🌿 Zero Sugar logged! Streak extended.');
+        this.renderAll();
+      }
+
+      saveSugarEntry(dateStr, sugarGrams, items, notes) {
+        const logs = this.getLogs();
+        const isZero = sugarGrams <= 0;
+
+        logs[dateStr] = {
+          id: `log-${dateStr}`,
+          date: dateStr,
+          isZeroSugar: isZero,
+          sugarGrams: isZero ? 0 : sugarGrams,
+          items: items || (isZero ? '' : 'Sugar Treat'),
+          notes: notes || '',
+          timestamp: Date.now()
+        };
+
+        this.saveLogs(logs);
+
+        if (isZero) {
+          this.triggerConfetti();
+          this.showToast('🌿 Zero Sugar logged!');
+        } else {
+          this.showToast('🧁 Logged. Fresh start beginning now!');
+        }
+
+        this.closeLogModal();
+        this.renderAll();
+      }
+
+      openLogModal(dateStr, isEdit = false) {
+        this.editingDateStr = dateStr;
+        const modal = document.getElementById('modal-log-sugar');
+        const title = document.getElementById('modal-log-title');
+        const subtitle = document.getElementById('modal-log-subtitle');
+        const dateInput = document.getElementById('input-log-date');
+        const itemNameInput = document.getElementById('input-item-name');
+        const qtyInput = document.getElementById('input-sugar-quantity');
+        const notesInput = document.getElementById('input-sugar-notes');
+        const settings = this.getSettings();
+
+        if (dateInput) dateInput.value = dateStr;
+        if (title) title.textContent = isEdit ? `Edit Log: ${this.formatDisplayDate(dateStr)}` : `Log Intake: ${this.formatDisplayDate(dateStr)}`;
+
+        const logs = this.getLogs();
+        const existing = logs[dateStr];
+
+        if (existing) {
+          if (existing.sugarGrams === 0) {
+            this.setModalSugarType('zero');
+          } else {
+            this.setModalSugarType('had');
+            const val = settings.unit === 'tsp' ? (existing.sugarGrams / 4) : existing.sugarGrams;
+            if (qtyInput) qtyInput.value = val;
+            if (itemNameInput) itemNameInput.value = existing.items || '';
+            if (notesInput) notesInput.value = existing.notes || '';
+          }
+        } else {
+          this.setModalSugarType('had');
+          if (qtyInput) qtyInput.value = '';
+          if (itemNameInput) itemNameInput.value = '';
+          if (notesInput) notesInput.value = '';
+        }
+
+        // Update modal unit label
+        const modalUnitBadge = document.getElementById('modal-unit-badge');
+        if (modalUnitBadge) modalUnitBadge.textContent = settings.unit === 'tsp' ? 'tsp' : 'g';
+
+        if (modal) modal.classList.remove('hidden');
+        this.refreshLucideIcons();
+      }
+
+      closeLogModal() {
+        const modal = document.getElementById('modal-log-sugar');
+        if (modal) modal.classList.add('hidden');
+        this.editingDateStr = null;
+      }
+
+      setModalSugarType(type) {
+        const btnZero = document.getElementById('modal-toggle-zero');
+        const btnHad = document.getElementById('modal-toggle-had');
+        const sugarDetails = document.getElementById('sugar-details-container');
+        const zeroConfirm = document.getElementById('zero-sugar-confirm-note');
+        const saveBtn = document.getElementById('btn-save-log');
+
+        if (type === 'zero') {
+          btnZero.className = 'py-2 text-xs font-bold rounded-lg transition-all bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs';
+          btnHad.className = 'py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400';
+          if (sugarDetails) sugarDetails.classList.add('hidden');
+          if (zeroConfirm) zeroConfirm.classList.remove('hidden');
+          if (saveBtn) {
+            saveBtn.textContent = 'Save Zero Sugar (0g)';
+            saveBtn.className = 'flex-1 py-2.5 px-4 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-500/20';
+          }
+        } else {
+          btnHad.className = 'py-2 text-xs font-bold rounded-lg transition-all bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs';
+          btnZero.className = 'py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400';
+          if (sugarDetails) sugarDetails.classList.remove('hidden');
+          if (zeroConfirm) zeroConfirm.classList.add('hidden');
+          if (saveBtn) {
+            saveBtn.textContent = 'Save Sugar Entry';
+            saveBtn.className = 'flex-1 py-2.5 px-4 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-500/20';
+          }
+        }
+        this.currentModalSugarType = type;
+        this.refreshLucideIcons();
+      }
+
+      promptDeleteDate(dateStr) {
+        this.pendingDeleteDateStr = dateStr;
+        const modal = document.getElementById('modal-confirm-delete');
+        const text = document.getElementById('confirm-delete-text');
+        if (text) {
+          text.textContent = `Remove log entry for ${this.formatDisplayDate(dateStr)} (${dateStr})? Your streaks will automatically update.`;
+        }
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      executeDelete() {
+        if (!this.pendingDeleteDateStr) return;
+        const logs = this.getLogs();
+        delete logs[this.pendingDeleteDateStr];
+        this.saveLogs(logs);
+        this.pendingDeleteDateStr = null;
+
+        const modal = document.getElementById('modal-confirm-delete');
+        if (modal) modal.classList.add('hidden');
+
+        this.showToast('Log entry removed.');
+        this.renderAll();
+      }
+
+      // --- CONFETTI & FEEDBACK ---
+      triggerConfetti() {
+        if (typeof window.confetti === 'function') {
+          window.confetti({
+            particleCount: 55,
+            spread: 65,
+            origin: { y: 0.65 },
+            colors: ['#10b981', '#34d399', '#6ee7b7', '#f59e0b', '#ffffff']
+          });
+        }
+      }
+
+      showToast(msg) {
+        const toast = document.getElementById('app-toast');
+        const text = document.getElementById('toast-msg');
+        if (!toast || !text) return;
+
+        text.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+        toast.classList.add('opacity-100');
+
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0', 'pointer-events-none');
+        }, 2600);
+      }
+
+      // --- NAVIGATION TABS ---
+      switchTab(tabId) {
+        this.currentTab = tabId;
+        const views = ['track', 'history', 'badges', 'settings'];
+
+        views.forEach(v => {
+          const el = document.getElementById(`view-${v}`);
+          const btn = document.getElementById(`nav-btn-${v}`);
+          if (el) {
+            el.classList.toggle('hidden', v !== tabId);
+          }
+          if (btn) {
+            if (v === tabId) {
+              btn.className = 'nav-tab-btn flex flex-col items-center justify-center py-1 text-brand-600 dark:text-brand-400 font-bold';
+            } else {
+              btn.className = 'nav-tab-btn flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300';
+            }
+          }
+        });
+
+        // Specific re-renders on tab focus
+        if (tabId === 'history') {
+          this.renderHistoryView();
+        } else if (tabId === 'badges') {
+          this.renderBadgesView();
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.refreshLucideIcons();
+      }
+
+      // --- EVENT LISTENERS ---
+      attachEventListeners() {
+        // Navigation Bar buttons
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tab = btn.getAttribute('data-tab');
+            if (tab) this.switchTab(tab);
+          });
+        });
+
+        // Settings header shortcut
+        const settingsShortcut = document.getElementById('btn-open-settings-shortcut');
+        if (settingsShortcut) {
+          settingsShortcut.onclick = () => this.switchTab('settings');
+        }
+
+        // Calendar Month navigation
+        const prevMonthBtn = document.getElementById('btn-prev-month');
+        if (prevMonthBtn) {
+          prevMonthBtn.onclick = () => {
+            this.calendarDate.setMonth(this.calendarDate.getMonth() - 1);
+            this.renderHistoryView();
+            this.refreshLucideIcons();
+          };
+        }
+
+        const nextMonthBtn = document.getElementById('btn-next-month');
+        if (nextMonthBtn) {
+          nextMonthBtn.onclick = () => {
+            this.calendarDate.setMonth(this.calendarDate.getMonth() + 1);
+            this.renderHistoryView();
+            this.refreshLucideIcons();
+          };
+        }
+
+        // Modal Controls
+        const closeLogModalBtn = document.getElementById('btn-close-log-modal');
+        const cancelLogModalBtn = document.getElementById('btn-cancel-modal');
+        if (closeLogModalBtn) closeLogModalBtn.onclick = () => this.closeLogModal();
+        if (cancelLogModalBtn) cancelLogModalBtn.onclick = () => this.closeLogModal();
+
+        const toggleZero = document.getElementById('modal-toggle-zero');
+        const toggleHad = document.getElementById('modal-toggle-had');
+        if (toggleZero) toggleZero.onclick = () => this.setModalSugarType('zero');
+        if (toggleHad) toggleHad.onclick = () => this.setModalSugarType('had');
+
+        // Quick item chips
+        document.querySelectorAll('.quick-chip').forEach(chip => {
+          chip.onclick = () => {
+            const name = chip.getAttribute('data-name');
+            const grams = parseFloat(chip.getAttribute('data-grams') || '0');
+            const settings = this.getSettings();
+
+            const nameInput = document.getElementById('input-item-name');
+            const qtyInput = document.getElementById('input-sugar-quantity');
+            if (nameInput) nameInput.value = name;
+            if (qtyInput) {
+              qtyInput.value = settings.unit === 'tsp' ? (grams / 4) : grams;
+            }
+          };
+        });
+
+        // Form Submit for Log
+        const logForm = document.getElementById('form-log-sugar');
+        if (logForm) {
+          logForm.onsubmit = (e) => {
+            e.preventDefault();
+            const dateStr = document.getElementById('input-log-date').value || this.getTodayDateString();
+            const isZeroType = this.currentModalSugarType === 'zero';
+
+            if (isZeroType) {
+              this.logZeroSugar(dateStr);
+              this.closeLogModal();
+            } else {
+              const name = document.getElementById('input-item-name').value.trim();
+              const rawQty = parseFloat(document.getElementById('input-sugar-quantity').value || '0');
+              const notes = document.getElementById('input-sugar-notes').value.trim();
+              const settings = this.getSettings();
+
+              const grams = settings.unit === 'tsp' ? (rawQty * 4) : rawQty;
+              this.saveSugarEntry(dateStr, grams, name, notes);
+            }
+          };
+        }
+
+        // Delete Modal Execution
+        const cancelDeleteBtn = document.getElementById('btn-cancel-delete');
+        const execDeleteBtn = document.getElementById('btn-execute-delete');
+        if (cancelDeleteBtn) {
+          cancelDeleteBtn.onclick = () => {
+            this.pendingDeleteDateStr = null;
+            document.getElementById('modal-confirm-delete').classList.add('hidden');
+          };
+        }
+        if (execDeleteBtn) {
+          execDeleteBtn.onclick = () => this.executeDelete();
+        }
+
+        // Settings: Theme Toggle
+        const themeBtn = document.getElementById('btn-toggle-theme');
+        if (themeBtn) {
+          themeBtn.onclick = () => {
+            const settings = this.getSettings();
+            const modes = ['system', 'dark', 'light'];
+            const nextIndex = (modes.indexOf(settings.theme) + 1) % modes.length;
+            settings.theme = modes[nextIndex];
+            this.saveSettings(settings);
+          };
+        }
+
+        // Settings: Unit Toggle
+        const unitGBtn = document.getElementById('unit-btn-g');
+        const unitTspBtn = document.getElementById('unit-btn-tsp');
+        if (unitGBtn) {
+          unitGBtn.onclick = () => {
+            const settings = this.getSettings();
+            settings.unit = 'g';
+            this.saveSettings(settings);
+            this.renderAll();
+          };
+        }
+        if (unitTspBtn) {
+          unitTspBtn.onclick = () => {
+            const settings = this.getSettings();
+            settings.unit = 'tsp';
+            this.saveSettings(settings);
+            this.renderAll();
+          };
+        }
+
+        // Settings: Export JSON
+        const exportBtn = document.getElementById('btn-export-json');
+        if (exportBtn) {
+          exportBtn.onclick = () => this.exportDataJSON();
+        }
+
+        // Settings: Import JSON
+        const importInput = document.getElementById('input-import-json');
+        if (importInput) {
+          importInput.onchange = (e) => this.importDataJSON(e);
+        }
+
+        // Settings: Reset Data
+        const resetBtn = document.getElementById('btn-reset-data');
+        if (resetBtn) {
+          resetBtn.onclick = () => {
+            if (confirm("Are you sure you want to permanently delete all logs, streaks, and achievements? This cannot be undone.")) {
+              localStorage.removeItem(STORAGE_KEYS.LOGS);
+              localStorage.removeItem(STORAGE_KEYS.LONGEST_STREAK);
+              localStorage.removeItem(STORAGE_KEYS.UNLOCKED_BADGES);
+              this.showToast('All data has been reset.');
+              this.renderAll();
+            }
+          };
+        }
+      }
+
+      // --- EXPORT & IMPORT JSON ---
+      exportDataJSON() {
+        const exportPayload = {
+          version: '1.0',
+          exportedAt: new Date().toISOString(),
+          appName: 'Sugar Cut',
+          logs: this.getLogs(),
+          longestStreak: this.getLongestStreak(),
+          unlockedBadges: this.getUnlockedBadges(),
+          settings: this.getSettings()
+        };
+
+        const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", jsonString);
+        downloadAnchor.setAttribute("download", `sugar-cut-backup-${this.getTodayDateString()}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+
+        this.showToast('Backup JSON exported successfully.');
+      }
+
+      importDataJSON(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data || !data.logs) {
+              alert("Invalid Sugar Cut backup file format.");
+              return;
+            }
+
+            if (confirm("Import this backup? Existing logs will be merged or updated.")) {
+              const currentLogs = this.getLogs();
+              const mergedLogs = { ...currentLogs, ...data.logs };
+              this.saveLogs(mergedLogs);
+
+              if (data.longestStreak) {
+                const current = this.getLongestStreak();
+                if (data.longestStreak > current) {
+                  this.setLongestStreak(data.longestStreak);
+                }
+              }
+
+              if (data.unlockedBadges) {
+                const currentBadges = this.getUnlockedBadges();
+                localStorage.setItem(STORAGE_KEYS.UNLOCKED_BADGES, JSON.stringify({ ...currentBadges, ...data.unlockedBadges }));
+              }
+
+              this.showToast('Data imported and streaks recalculated!');
+              this.renderAll();
+            }
+          } catch (err) {
+            alert("Error reading file: " + err.message);
+          }
+          event.target.value = '';
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    // Initialize application when DOM is ready
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new SugarCutApp();
+      window.app = app;
+    });
+  </script>
+</body>
+</html>

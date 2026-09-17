@@ -1173,6 +1173,11 @@
         entry.items = entry.itemsList.map(it => it.name).join(', ');
         entry.timestamp = Date.now();
 
+        // Reset badge milestone progress when logging an item/treat
+        if (entry.sugarGrams > 0) {
+          this.resetBadgeProgress();
+        }
+
         this.saveLogs(logs);
         return newItem;
       }
@@ -1292,6 +1297,12 @@
         return false;
       }
 
+      resetBadgeProgress() {
+        // When sugar/treat item is logged, reset badge progress and unlocked status
+        localStorage.removeItem(STORAGE_KEYS.UNLOCKED_BADGES);
+        localStorage.setItem(STORAGE_KEYS.LONGEST_STREAK, '0');
+      }
+
       // --- STREAK LOGIC ---
       calculateStreaksAndBadges() {
         const logs = this.getLogs();
@@ -1350,10 +1361,10 @@
           currentLongest = streak;
         }
 
-        // Check milestones
+        // Check milestones - badges are unlocked based on the active clean streak
         let newlyUnlockedMilestone = null;
         MILESTONES.forEach(m => {
-          if (streak >= m.days || currentLongest >= m.days) {
+          if (streak >= m.days) {
             const isNew = this.setUnlockedBadge(m.id, todayStr);
             if (isNew) {
               newlyUnlockedMilestone = m;
@@ -2135,7 +2146,6 @@
 
         const { currentStreak, longestStreak } = this.calculateStreaksAndBadges();
         const unlockedBadges = this.getUnlockedBadges();
-        const highestDays = Math.max(currentStreak, longestStreak);
 
         let unlockedCount = 0;
         let html = '';
@@ -2144,7 +2154,7 @@
           const isUnlocked = Boolean(unlockedBadges[m.id]);
           if (isUnlocked) unlockedCount++;
 
-          const progress = Math.min(m.days, highestDays);
+          const progress = Math.min(m.days, currentStreak);
           const progressPct = Math.min(100, Math.round((progress / m.days) * 100));
 
           html += `
